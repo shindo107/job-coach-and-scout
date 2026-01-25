@@ -5,7 +5,7 @@
 **Purpose:** Generate a voice-matched cover letter through writing sample analysis and iterative refinement
 **Agent:** Job Coach (Max)
 **Reads:**
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Target job details (required)
 - `profile/writing_samples/*.md` — For voice matching (recommended)
 - `profile/constraints.yaml` — For name and preferences (optional)

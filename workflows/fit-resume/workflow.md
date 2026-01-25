@@ -5,7 +5,7 @@
 **Purpose:** Tailor your resume through interview-driven extraction and voice-matched bullet generation
 **Agent:** Job Coach (Max)
 **Reads:**
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Parsed job posting (required)
 - `profile/constraints.yaml` — For feedback style preference (optional)
 - `applications/resumes/*.md` — Previous tailored resumes for content reuse (optional)
@@ -38,21 +38,20 @@
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Parsed job posting (required)
 
 If available, also load:
 - `profile/constraints.yaml` — For feedback style preference
-- `applications/resumes/*.md` — Previous tailored resumes (CORPUS for content reuse)
+- `applications/resumes/*.md` — Previous tailored resumes (for content reuse)
 
-**If resume doesn't exist:**
+**If corpus doesn't exist:**
 ```
-I need your resume to tailor. I couldn't find `profile/resume.md`.
+I need your Resume Corpus to tailor. I couldn't find `profile/corpus.json`.
 
 Would you like to:
-1. Run the init workflow to import your resume
-2. Provide the path to your resume file
-3. Paste your resume content
+1. Run the init workflow to create your corpus
+2. Provide the path to your resume file (I'll help import it)
 ```
 
 **If job posting doesn't exist:**

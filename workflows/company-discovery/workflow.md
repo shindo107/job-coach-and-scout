@@ -5,7 +5,7 @@
 **Purpose:** Discover and rank companies in your target industry by fit with your constraints
 **Agent:** Job Scout
 **Reads:**
-- `profile/resume.md` — Skills context (required)
+- `profile/corpus.json` — Skills context (required)
 - `profile/constraints.yaml` — Job search preferences (required)
 - `research/industries.md` — Industry research output (optional)
 **Creates:**
@@ -30,21 +30,20 @@ Adopt the Scout persona from `agents/job-scout.md`.
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Skills context (required)
+- `profile/corpus.json` — Skills context (required)
 - `profile/constraints.yaml` — Job search preferences (required)
 
 If available, also load:
 - `research/industries.md` — Industry research output (for context)
 
-**If resume doesn't exist:**
+**If corpus doesn't exist:**
 ```
-I need your resume to understand your skills for company evaluation.
-I couldn't find `profile/resume.md`.
+I need your Resume Corpus to understand your skills for company evaluation.
+I couldn't find `profile/corpus.json`.
 
 Would you like to:
-1. Run the init workflow to import your resume
-2. Provide the path to your resume file
-3. Describe your key skills
+1. Run the init workflow to create your corpus
+2. Provide the path to your resume file (I'll help import it)
 ```
 
 **If constraints don't exist:**
@@ -90,9 +89,9 @@ Record the selected industry for file organization and searches.
 
 ### Step 2: Load Profile for Evaluation Criteria
 
-**2a. Load and parse resume:**
+**2a. Load and parse corpus:**
 
-Extract from `profile/resume.md`:
+Extract from `profile/corpus.json`:
 - Primary technical skills (for tech stack matching)
 - Role types held (for job matching)
 - Seniority level (for compensation estimates)

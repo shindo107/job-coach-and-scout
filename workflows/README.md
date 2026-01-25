@@ -194,11 +194,11 @@ Would you like to:
 ### Invalid File Format
 
 ```
-I found `profile/resume.md` but it appears to be empty or corrupted.
+I found `profile/corpus.json` but it appears to be empty or corrupted.
 
 Would you like to:
-1. Re-import your resume from another file
-2. Paste your resume content directly
+1. Run init to recreate your corpus from your resume
+2. Restore from the backup at `profile/corpus.json.bak`
 3. Check the file manually and try again
 ```
 
@@ -252,6 +252,7 @@ job-coach-and-scout/
 ├── profile/                     # User data
 │   ├── corpus.json             # Your structured Resume Corpus
 │   ├── constraints.yaml        # Job search constraints
+│   ├── imports/                # Drop zone for source resume files
 │   └── writing_samples/        # Voice analysis samples
 │
 ├── applications/                # Generated outputs

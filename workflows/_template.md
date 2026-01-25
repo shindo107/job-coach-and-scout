@@ -30,7 +30,7 @@
 -->
 
 Before starting, load these files:
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — Resume Corpus (required)
 - `profile/constraints.yaml` — Job search constraints (required)
 
 If available, also load:
@@ -123,7 +123,7 @@ EXAMPLE 1: Resume Tailoring Workflow
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — Resume Corpus (required)
 - `profile/constraints.yaml` — Job search constraints (required)
 - `research/openings/{company}-{role}.md` — Job posting analysis (required)
 
@@ -190,7 +190,7 @@ EXAMPLE 2: Research Workflow (Job Scout)
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — Resume Corpus (required)
 - `profile/constraints.yaml` — Job search constraints (required)
 
 If available, also load:

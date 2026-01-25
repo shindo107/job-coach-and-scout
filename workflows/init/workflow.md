@@ -5,10 +5,11 @@
 **Purpose:** Set up your job search project with directory structure, import resume and writing samples
 **Agent:** Job Coach (Max) & Job Scout
 **Reads:**
-- User-provided resume (file path or pasted content)
+- User-provided resumes (one or more file paths, or pasted content)
 - User-provided writing samples (optional)
 **Creates:**
-- `profile/resume.md` — Your master resume
+- `profile/corpus.json` — Your structured Resume Corpus
+- `profile/imports/` — Drop zone for source resumes
 - `profile/writing_samples/` — Voice analysis samples
 - `applications/resumes/` — Directory for tailored resumes
 - `applications/cover_letters/` — Directory for cover letters
@@ -53,7 +54,7 @@ I approach job hunting like competitive intelligence — analyzing markets, iden
 **What we'll set up today:**
 
 - [ ] Establish directory structure (profile/, applications/, research/)
-- [ ] Import your resume
+- [ ] Import your resume(s) — you can provide multiple versions for a richer corpus
 - [ ] Import writing samples (optional)
 - [ ] Schedule scoping interview (next workflow)
 
@@ -100,6 +101,7 @@ First, I'll set up the required directories for your project.
 **Actions:**
 1. Check for and create the following directories if they don't exist:
    - `profile/`
+   - `profile/imports/` — where users drop source resume files
    - `profile/writing_samples/`
    - `applications/`
    - `applications/resumes/`
@@ -111,36 +113,122 @@ First, I'll set up the required directories for your project.
 
 ### Step 4: Create Resume Corpus
 
-Now, we'll import your resume and transform it into a structured "Resume Corpus". This creates a powerful, searchable knowledge base of your experience that will improve over time.
+Now, we'll import your resume(s) and transform them into a structured "Resume Corpus". This creates a powerful, searchable knowledge base of your experience that will improve over time.
 
-**Prompt for Resume:**
-"Where is your resume? You can:
-1. Provide a file path to a text or markdown file
-2. Paste the content directly
-3. Type 'skip' to create an empty corpus"
+> **Why multiple resumes?** If you have different versions of your resume (tailored for different roles, older versions with experiences you trimmed, a master resume and a shorter one), providing all of them helps build a more comprehensive corpus. I'll intelligently merge them, keeping unique accomplishments and the best phrasing from each.
 
-**(Get resume content into a temporary variable based on user choice)**
+**Prompt for Resumes:**
+```
+Where are your resumes? You can provide multiple files to build a richer corpus.
+
+Options:
+A) Drop them in `profile/imports/` (Recommended)
+   Just copy your resume files there and I'll import them all.
+   Supported formats: .md, .txt, .pdf, .docx
+
+B) Point me to a different folder
+   I'll scan that directory for resume files.
+
+C) Other (specify)
+   Paste content, provide specific file paths, or skip.
+
+Which option? [A/B/C]
+```
+
+**(Handle user's choice)**
+
+**Option A — Import from `profile/imports/` (Recommended):**
+1. Check if `profile/imports/` contains any files
+2. **If empty:**
+   ```
+   The `profile/imports/` folder is empty.
+
+   Please copy your resume file(s) there now. You can add:
+   - Your current resume
+   - Older versions with experiences you may have trimmed
+   - Role-specific variants (e.g., technical vs. management focused)
+
+   Let me know when you've added them, or choose another option.
+   ```
+   Wait for user confirmation, then re-scan.
+3. **If files found:**
+   ```
+   Found {N} file(s) in profile/imports/:
+   - {filename_1}
+   - {filename_2}
+   - ...
+
+   Import all of these? [Yes / No, let me adjust]
+   ```
+4. Read each supported file and store contents with source filename
+5. Unsupported file types: warn and skip
+
+**Option B — Different directory:**
+```
+What's the path to the folder containing your resumes?
+Example: ~/Documents/resumes or /Users/you/job-search/
+```
+1. Validate the directory exists
+2. List files found and confirm with user (same as Option A step 3)
+3. Read each supported file
+
+**Option C — Other:**
+```
+How would you like to provide your resume(s)?
+1. Paste content directly — I'll prompt you for each resume
+2. Specific file path(s) — comma-separated list
+3. Skip — create an empty corpus to populate later
+```
+
+**If pasting:**
+```
+Great! Let's collect your resumes one at a time.
+
+Paste your first resume content below. When you're done, type 'DONE' on a new line.
+```
+After each paste:
+```
+Got it! Do you have another resume version to add?
+- Paste the next one
+- Type 'no more' when you've added all your resumes
+```
+
+**If specific paths:**
+1. Parse the comma-separated list of paths
+2. Read each file and store contents with source filename
+3. If any file fails to read, report which one and ask if they want to continue with the others
 
 **If skipped:**
 1. Create an empty `profile/corpus.json` file with the base schema.
 2. Skip to **Step 5**.
 
-**Once resume content is available, proceed:**
+**Once resume content is collected, proceed:**
 
-1.  **- [ ] Parse Resume into Structured Blocks:**
-    -   **Instruction:** "Analyze the provided resume text. Your goal is to convert this unstructured document into a structured JSON object. Identify the following sections: Professional Summary, Work Experience, Education, and Skills."
-    -   **Instruction:** "For each job under Work Experience, extract the company, title, dates, and a list of accomplishment bullet points."
+1.  **- [ ] Parse Each Resume into Structured Blocks:**
+    -   **Instruction:** "For EACH provided resume, analyze the text and extract: Professional Summary, Work Experience (company, title, dates, accomplishment bullets), Education, and Skills."
+    -   **Instruction:** "Track which resume each piece of content came from (for deduplication decisions)."
     -   **Instruction:** "For each skill, identify the skill name and try to categorize it (e.g., 'Programming Language', 'Database', 'Cloud Platform')."
 
-2.  **- [ ] Generate JSON with Schema:**
-    -   **Instruction:** "Using the parsed information, generate the content for a `corpus.json` file. Adhere strictly to the following JSON schema. Create unique IDs for each item."
+2.  **- [ ] Merge and Deduplicate:**
+    -   **Positions:** Match positions by company + title + overlapping dates. If the same position appears in multiple resumes, merge their accomplishments.
+    -   **Accomplishments:** For semantically similar bullets (same achievement, different wording), keep the version with:
+        - More specific metrics/numbers
+        - Stronger action verbs
+        - More detail
+        - Note: Store alternate phrasings as `variations` for future use
+    -   **Skills:** Union all skills across resumes, deduplicate by name (case-insensitive).
+    -   **Summaries:** Keep all unique summaries (they may be tailored for different audiences).
+
+3.  **- [ ] Generate JSON with Schema:**
+    -   **Instruction:** "Using the merged information, generate the content for a `corpus.json` file. Adhere strictly to the following JSON schema. Create unique IDs for each item."
     -   **Schema Definition:**
         ```json
         {
           "schema_version": "1.0",
           "last_updated": "{current_timestamp}",
+          "sources": ["{filename_1}", "{filename_2}"],
           "summaries": [
-            { "id": "sum_01", "content": "{parsed_summary}" }
+            { "id": "sum_01", "content": "{parsed_summary}", "source": "{filename}" }
           ],
           "positions": [
             {
@@ -155,9 +243,12 @@ Now, we'll import your resume and transform it into a structured "Resume Corpus"
             {
               "id": "acc_01",
               "position_id": "pos_01",
-              "content": "{parsed_bullet_point}",
+              "content": "{best_bullet_point}",
               "skills_tags": ["{inferred_skill_1}", "{inferred_skill_2}"],
-              "metrics": ["{inferred_metric_1}"]
+              "metrics": ["{inferred_metric_1}"],
+              "variations": [
+                { "id": "var_01", "content": "{alternate_phrasing}", "source": "{filename}" }
+              ]
             }
           ],
           "skills": [
@@ -171,7 +262,21 @@ Now, we'll import your resume and transform it into a structured "Resume Corpus"
         ```
     -   **PII Handling:** "During this process, identify any PII (email, phone, address) and replace it with placeholders like `[REDACTED_EMAIL]` in the `content` fields."
 
-3.  **- [ ] Save Corpus File:**
+4.  **- [ ] Report Merge Results:**
+    -   Tell the user what was merged:
+    ```
+    Corpus built from {N} resume(s):
+    - {X} positions identified
+    - {Y} unique accomplishments extracted
+    - {Z} alternate phrasings saved as variations
+    - {W} skills catalogued
+
+    Notable merges:
+    - Position "{title} at {company}": Combined {N} bullets from multiple sources
+    - Accomplishment about "{topic}": Kept version with metrics, saved alternate as variation
+    ```
+
+5.  **- [ ] Save Corpus File:**
     -   Save the generated JSON to `profile/corpus.json`.
 
 ### Step 4a: Validate Corpus File
@@ -207,7 +312,10 @@ Writing samples help me match your voice when generating cover letters. This is 
 ```
 Setup Complete!
 
-Your resume has been converted into a structured Resume Corpus at `profile/corpus.json`.
+Your resume(s) have been converted into a structured Resume Corpus at `profile/corpus.json`.
+
+{If multiple resumes were provided:}
+I merged content from {N} resume sources, extracting {X} positions, {Y} accomplishments, and {Z} skills. Alternate phrasings were saved as variations for future tailoring.
 
 This file is a searchable database of your skills and experiences that will improve over time. All future workflows will now use this corpus as the single source of truth.
 
@@ -215,7 +323,7 @@ Created directories:
 - profile/, applications/, research/ and their subdirectories.
 
 Created files:
-- profile/corpus.json (Your new Resume Corpus)
+- profile/corpus.json (Your Resume Corpus — built from {N} source(s))
 - profile/writing_samples/[list of samples]
 ```
 

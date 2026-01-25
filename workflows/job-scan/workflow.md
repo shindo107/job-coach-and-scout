@@ -332,7 +332,7 @@ After this workflow completes successfully:
 
 1. **Suggest:** evaluate-fit OR fit-resume
    **Rationale:** "Posting parsed. Want a quick fit check or ready to start tailoring?"
-   **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), `profile/resume.md`, `profile/constraints.yaml`
+   **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), `profile/corpus.json`, `profile/constraints.yaml`
 
 2. Present the suggestion conversationally:
    "I've parsed the job posting for {Company} - {Role}. Would you like to:

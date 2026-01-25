@@ -5,7 +5,7 @@
 **Purpose:** Research industry trends and tier industries by fit with your profile
 **Agent:** Job Scout
 **Reads:**
-- `profile/resume.md` — Skills and experience context (required)
+- `profile/corpus.json` — Skills and experience context (required)
 - `profile/constraints.yaml` — Job search preferences (required)
 **Creates:**
 - `research/industries.md` — Tiered industry analysis with scores and rationale
@@ -31,14 +31,14 @@ Your communication style is analytical and methodical, presenting findings in st
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Skills and experience context (required)
+- `profile/corpus.json` — Skills and experience context (required)
 - `profile/constraints.yaml` — Job search preferences (required)
 
-**If resume doesn't exist:**
+**If corpus doesn't exist:**
 ```
-I need your resume to understand your skills and experience, but I couldn't find `profile/resume.md`.
+I need your Resume Corpus to understand your skills and experience, but I couldn't find `profile/corpus.json`.
 
-The easiest way to set this up is to run the init workflow — just say "run init" and I'll help you import your resume. Or if you have a resume file elsewhere, let me know the path and I'll copy it over. We can also work from a description of your skills if you'd prefer to start there.
+The easiest way to set this up is to run the init workflow — just say "run init" and I'll help you import your resume and create your corpus. Or if you have a resume file elsewhere, let me know the path and I'll help you import it.
 ```
 
 **If constraints don't exist:**
@@ -52,9 +52,9 @@ Let's run the scoping-interview workflow to capture your preferences — just sa
 
 ### Step 1: Load Profile Context
 
-**1a. Load and parse resume:**
+**1a. Load and parse corpus:**
 
-Read `profile/resume.md` and extract:
+Read `profile/corpus.json` and extract:
 
 **Primary technical skills:**
 - Programming languages and frameworks
@@ -307,7 +307,7 @@ Replace all `{placeholder}` values with actual data. For the date, use today's d
 ```markdown
 ---
 generated: "YYYY-MM-DD"  <!-- Replace with today's actual date -->
-based_on_profile: "profile/resume.md"
+based_on_profile: "profile/corpus.json"
 constraints_used: "profile/constraints.yaml"
 industries_analyzed: {count}
 ---
