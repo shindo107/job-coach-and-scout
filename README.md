@@ -37,7 +37,7 @@ This is a collection of **workflow files** that Claude Code reads and executes d
 
 | Workflow | Purpose |
 |----------|---------|
-| **init** | Initialize project, import resume, collect writing samples |
+| **init** | Meet Max & Scout, agree to privacy terms, initialize project, import resume & writing samples |
 | **scoping-interview** | Establish job search constraints and preferences |
 
 ### Resume Preparation
@@ -113,6 +113,13 @@ job-coach-and-scout/
 1. **Initialize your project:**
    Ask Claude Code: "Help me set up my job search project"
 
+   The init workflow will:
+   - Introduce both Max (Job Coach) and Scout (Job Scout)
+   - Show you what's needed to get started
+   - Ask for your agreement before processing personal data
+   - Set up your directory structure
+   - Import your resume and writing samples
+
 2. **Complete the scoping interview:**
    Ask Claude Code: "Run the scoping interview"
 
@@ -122,8 +129,12 @@ job-coach-and-scout/
 
 ## Privacy
 
-- All data is stored locally in this project directory
-- No telemetry, analytics, or external calls
+**Before you begin:** The init workflow requires your explicit agreement to continue. You'll be informed that:
+
+- Personal data (resume, salary expectations, career history) will be processed by frontier LLMs
+- All data is stored locally in this project directory (unencrypted)
+- You are responsible for securing your machine
+- No telemetry, analytics, or external calls from this project
 - Data processed in Claude Code sessions is subject to Anthropic's data handling policies
 
 ## File Formats
