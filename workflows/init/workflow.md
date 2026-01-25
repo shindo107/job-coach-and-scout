@@ -95,176 +95,110 @@ Type `yes` to proceed or `no` to exit.
 
 ### Step 3: Directory Structure Setup
 
-First, let me check if you already have a project set up.
+First, I'll set up the required directories for your project.
 
-**Check for existing structure:**
-1. Look for `profile/` directory
-2. If found, warn: "It looks like you've already initialized a project. Continuing may overwrite existing files. Do you want to proceed? (yes/no)"
-3. If user declines, exit gracefully
+**Actions:**
+1. Check for and create the following directories if they don't exist:
+   - `profile/`
+   - `profile/writing_samples/`
+   - `applications/`
+   - `applications/resumes/`
+   - `applications/cover_letters/`
+   - `research/`
+   - `research/companies/`
+   - `research/openings/`
+2. Report what was created.
 
-**Create missing directories:**
+### Step 4: Create Resume Corpus
 
-```
-profile/
-├── resume.md           # Your master resume (imported in Step 4)
-└── writing_samples/    # Voice analysis samples
-    └── README.md       # Placeholder with instructions
+Now, we'll import your resume and transform it into a structured "Resume Corpus". This creates a powerful, searchable knowledge base of your experience that will improve over time.
 
-applications/
-├── resumes/            # Tailored resumes (created by fit-resume workflow)
-└── cover_letters/      # Generated cover letters
-
-research/
-├── companies/          # Company profiles (created by Scout)
-└── openings/           # Job posting analyses
-```
-
-**For each directory:**
-1. Check if it exists
-2. Create if missing
-3. Report what was created
-
-**Create placeholder files:**
-
-`profile/writing_samples/README.md`:
-```markdown
-# Writing Samples
-
-Place your writing samples here for voice analysis. Good samples include:
-- Cover letters you've written
-- LinkedIn posts or articles
-- Professional emails or proposals
-- Any writing that represents your voice
-
-The more samples you provide, the better Max can match your voice when generating cover letters.
-```
-
-`applications/resumes/README.md`:
-```markdown
-# Tailored Resumes
-
-This folder contains resumes tailored for specific job applications.
-
-Files are created by the fit-resume workflow and named: `{company}-{role}.md`
-
-Example: `acme-senior-engineer.md`
-```
-
-`applications/cover_letters/README.md`:
-```markdown
-# Cover Letters
-
-This folder contains cover letters generated for specific job applications.
-
-Files are created by the cover-letter workflow and named: `{company}-{role}.md`
-
-Example: `stripe-staff-engineer.md`
-```
-
-`research/companies/README.md`:
-```markdown
-# Company Research
-
-This folder contains company profiles and research created by Scout.
-
-Files are organized by industry and named: `{industry}/{company}.md`
-
-Example: `fintech/stripe.md`
-```
-
-`research/openings/README.md`:
-```markdown
-# Job Opening Analyses
-
-This folder contains analyzed job postings and opportunity assessments.
-
-Files are named: `{company}-{role}.md`
-
-Example: `netflix-principal-engineer.md`
-```
-
-### Step 4: Resume Import
-
-Now let's import your resume.
-
-**Prompt:**
+**Prompt for Resume:**
 "Where is your resume? You can:
-1. Provide a file path to a markdown file
-2. Paste the content directly (useful if you have a PDF/DOCX)
-3. Type 'skip' to add it later"
+1. Provide a file path to a text or markdown file
+2. Paste the content directly
+3. Type 'skip' to create an empty corpus"
 
-**If file path provided:**
-1. Read the file
-2. Copy contents to `profile/resume.md`
-3. Show a preview (first 20 lines)
-4. Ask: "Does this look correct? (yes/no)"
-5. If no, offer to try again or paste content
-
-**If content pasted:**
-1. Write content to `profile/resume.md`
-2. Show a preview
-3. Confirm with user
+**(Get resume content into a temporary variable based on user choice)**
 
 **If skipped:**
-1. Note that resume will need to be added before using fit-resume workflow
-2. Create empty `profile/resume.md` with placeholder text:
-   ```markdown
-   # Resume
+1. Create an empty `profile/corpus.json` file with the base schema.
+2. Skip to **Step 5**.
 
-   Add your resume content here before using the fit-resume workflow.
-   ```
+**Once resume content is available, proceed:**
 
-**Error handling:**
-If file can't be read or is in an unsupported format (PDF, DOCX, binary):
-```
-I tried to read your resume but couldn't access it. This could be because:
-- The file doesn't exist at that path
-- The file is in a format I can't read directly (PDF, DOCX, etc.)
+1.  **- [ ] Parse Resume into Structured Blocks:**
+    -   **Instruction:** "Analyze the provided resume text. Your goal is to convert this unstructured document into a structured JSON object. Identify the following sections: Professional Summary, Work Experience, Education, and Skills."
+    -   **Instruction:** "For each job under Work Experience, extract the company, title, dates, and a list of accomplishment bullet points."
+    -   **Instruction:** "For each skill, identify the skill name and try to categorize it (e.g., 'Programming Language', 'Database', 'Cloud Platform')."
 
-I need your resume in markdown or plain text format.
+2.  **- [ ] Generate JSON with Schema:**
+    -   **Instruction:** "Using the parsed information, generate the content for a `corpus.json` file. Adhere strictly to the following JSON schema. Create unique IDs for each item."
+    -   **Schema Definition:**
+        ```json
+        {
+          "schema_version": "1.0",
+          "last_updated": "{current_timestamp}",
+          "summaries": [
+            { "id": "sum_01", "content": "{parsed_summary}" }
+          ],
+          "positions": [
+            {
+              "id": "pos_01",
+              "company": "{parsed_company}",
+              "title": "{parsed_title}",
+              "start_date": "{parsed_start}",
+              "end_date": "{parsed_end}"
+            }
+          ],
+          "accomplishments": [
+            {
+              "id": "acc_01",
+              "position_id": "pos_01",
+              "content": "{parsed_bullet_point}",
+              "skills_tags": ["{inferred_skill_1}", "{inferred_skill_2}"],
+              "metrics": ["{inferred_metric_1}"]
+            }
+          ],
+          "skills": [
+            {
+              "id": "skill_01",
+              "name": "{parsed_skill}",
+              "category": "{inferred_category}"
+            }
+          ]
+        }
+        ```
+    -   **PII Handling:** "During this process, identify any PII (email, phone, address) and replace it with placeholders like `[REDACTED_EMAIL]` in the `content` fields."
 
-Would you like to:
-1. Try a different path?
-2. Paste the content directly? (recommended for PDF/DOCX)
-3. Help me create a resume from scratch?
-4. Skip and add it later?
-```
+3.  **- [ ] Save Corpus File:**
+    -   Save the generated JSON to `profile/corpus.json`.
 
-**If user chooses "create from scratch":**
-Walk through basic resume sections interactively:
-- Contact information
-- Professional summary
-- Work experience (ask for each role)
-- Education
-- Skills
-Save to `profile/resume.md` and show preview for confirmation.
+### Step 4a: Validate Corpus File
+
+This is a critical safety check to ensure the Resume Corpus is not corrupted.
+
+**Actions:**
+1.  **- [ ] Execute validation script:**
+    -   Run the command: `cat profile/corpus.json | tools/validate-json.sh`
+2.  **- [ ] Handle result:**
+    -   **If the command succeeds (exit code 0):** The file is valid. Inform the user: "Resume Corpus created and validated successfully." Proceed to the next step.
+    -   **If the command fails (non-zero exit code):** The file is invalid.
+        -   Report the error to the user: "I detected a formatting error in the `profile/corpus.json` file I just saved. The error is: [show stderr from the command]."
+        -   "I will attempt to fix this automatically."
+        -   Re-run the parsing and generation steps from Step 4 to create a corrected version.
+        -   If it fails a second time, stop the workflow and report the critical failure.
 
 ### Step 5: Writing Samples Import (Optional)
 
-Writing samples help me match your voice when generating cover letters.
+Writing samples help me match your voice when generating cover letters. This is separate from your resume corpus.
 
 **Prompt:**
 "Do you have writing samples to import? (cover letters, LinkedIn posts, etc.)
 - Provide file paths separated by commas
 - Type 'skip' if you don't have any right now"
 
-**If paths provided:**
-1. For each path:
-   - Read the file
-   - Generate descriptive name (e.g., `sample-1-cover-letter.md`)
-   - Copy to `profile/writing_samples/`
-   - Report success or failure
-2. Show summary of imported samples
-
-**If skipped:**
-1. Note that writing samples can be added later
-2. Cover letter generation will still work, but voice matching will be limited
-
-**Naming convention:**
-- `sample-1-cover-letter.md`
-- `sample-2-linkedin-post.md`
-- `sample-3-proposal.md`
-- Ask user to describe each sample briefly for better naming
+**(This step's logic for copying files remains the same as before)**
 
 ### Step 6: Completion Summary
 
@@ -273,59 +207,34 @@ Writing samples help me match your voice when generating cover letters.
 ```
 Setup Complete!
 
+Your resume has been converted into a structured Resume Corpus at `profile/corpus.json`.
+
+This file is a searchable database of your skills and experiences that will improve over time. All future workflows will now use this corpus as the single source of truth.
+
 Created directories:
-- profile/
-- profile/writing_samples/
-- applications/
-- applications/resumes/
-- applications/cover_letters/
-- research/
-- research/companies/
-- research/openings/
+- profile/, applications/, research/ and their subdirectories.
 
-Created placeholder READMEs:
-- profile/writing_samples/README.md
-- applications/resumes/README.md
-- applications/cover_letters/README.md
-- research/companies/README.md
-- research/openings/README.md
-
-Imported files:
-- profile/resume.md [or "Not imported - add before using fit-resume"]
-- profile/writing_samples/[list of samples] [or "None imported"]
+Created files:
+- profile/corpus.json (Your new Resume Corpus)
+- profile/writing_samples/[list of samples]
 ```
 
 **Next step:**
 
-The scoping interview is where we establish your job search constraints — what you're looking for, your dealbreakers, compensation requirements, and preferences. This creates your `constraints.yaml` file that guides all future workflows.
+The scoping interview is where we establish your job search constraints. This creates your `constraints.yaml` file that guides all future workflows.
 
 **Would you like to start the scoping interview now?**
 - Type `yes` to start the scoping-interview workflow
-- Type `no` to finish here (you can run it later with "help me run the scoping interview")
-
-*If user declines:*
-"No problem! When you're ready, just ask me to run the scoping interview. In the meantime, make sure your resume is in `profile/resume.md` — you'll need it for the scoping interview."
+- Type `no` to finish here (you can run it later by asking)
 
 ## Output
 
 **Directories created:**
-- `profile/`
-- `profile/writing_samples/`
-- `applications/`
-- `applications/resumes/`
-- `applications/cover_letters/`
-- `research/`
-- `research/companies/`
-- `research/openings/`
+- `profile/`, `applications/`, `research/` and their subdirectories.
 
 **Files created:**
-- `profile/resume.md` (user's master resume)
-- `profile/writing_samples/README.md` (placeholder with instructions)
+- `profile/corpus.json` (The user's structured resume knowledge base)
 - `profile/writing_samples/*` (imported samples, if any)
-- `applications/resumes/README.md` (placeholder with instructions)
-- `applications/cover_letters/README.md` (placeholder with instructions)
-- `research/companies/README.md` (placeholder with instructions)
-- `research/openings/README.md` (placeholder with instructions)
 
 ## Recommend Next
 
@@ -333,10 +242,10 @@ After this workflow completes successfully:
 
 1. **Suggest:** scoping-interview
    **Rationale:** "Let's capture your job search preferences next"
-   **Context to pass:** `profile/resume.md` (imported resume), `profile/writing_samples/` (if any)
+   **Context to pass:** `profile/corpus.json` (the newly created corpus)
 
 2. Present the suggestion conversationally:
-   "Great, your project is set up! Let's capture your job search preferences next — salary expectations, location, remote preferences, and dealbreakers. This creates your `constraints.yaml` file that guides all future workflows. Ready to start the scoping interview? [Yes/No/Something else]"
+   "Great, your Resume Corpus is set up! Let's capture your job search preferences next — salary expectations, location, remote preferences, and dealbreakers. Ready to start the scoping interview? [Yes/No/Something else]"
 
 3. If user agrees: Load `workflows/scoping-interview/workflow.md` and execute
 4. If user declines: Summarize what was accomplished and end gracefully

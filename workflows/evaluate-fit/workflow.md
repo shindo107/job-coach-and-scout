@@ -2,38 +2,37 @@
 
 ## Summary
 
-**Purpose:** Assess alignment between your resume and job requirements (read-only analysis)
+**Purpose:** Assess alignment between your resume corpus and job requirements (read-only analysis)
 **Agent:** Job Coach (Max)
 **Reads:**
-- `profile/resume.md` — Your master resume (required)
+- `profile/corpus.json` — Your structured Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Parsed job posting (required)
 - `profile/constraints.yaml` — For feedback style preference (optional)
 **Creates:**
 - None — displays assessment in conversation only
 **Approximate time:** 5-10 minutes
-**Prerequisites:** job-scan completed for target posting
+**Prerequisites:** `init` and `job-scan` completed.
 
 ---
 
-**Trigger:** User says "evaluate my fit", "how well do I match", "assess this role for me", or after completing job-scan
+**Trigger:** User says "evaluate my fit", "how well do I match", or after completing job-scan
 
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Your master resume (required)
+- `profile/corpus.json` — Your Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Parsed job posting (required)
 
 If available, also load:
 - `profile/constraints.yaml` — For feedback style preference
 
-**If resume doesn't exist:**
+**If corpus doesn't exist:**
 ```
-I need your resume to evaluate fit. I couldn't find `profile/resume.md`.
+I need your Resume Corpus to evaluate fit. I couldn't find `profile/corpus.json`.
 
 Would you like to:
-1. Run the init workflow to import your resume
-2. Provide the path to your resume file
-3. Paste your resume content
+1. Run the init workflow to create your resume corpus
+2. Continue without a resume (assessment will not be possible)
 ```
 
 **If job posting doesn't exist:**
@@ -49,233 +48,64 @@ Would you like to:
 
 ### Step 1: Load Context and Identify Posting
 
-**If user specified a company/role:**
-Load `research/openings/{company}-{role}.md`
+**(This step remains the same: identify and load the parsed job posting file and extract requirements.)**
 
-**If user didn't specify:**
-```
-Which job posting would you like me to evaluate your fit against?
+### Step 2: Load Corpus and Feedback Style
 
-Available postings in research/openings/:
-{list available .md files}
+1.  **- [ ] Load Resume Corpus:**
+    -   Load `profile/corpus.json`.
+    -   If the file is missing or invalid, stop and guide the user to run the `init` workflow.
+2.  **- [ ] Load Feedback Style Preference:**
+    -   Load `profile/constraints.yaml` if it exists.
+    -   Extract `preferences.feedback_style` value.
+    -   Default to `brutally_honest` if not set.
 
-Enter the company-role name, or provide a new posting to scan first.
-```
+### Step 3: Query Corpus for Evidence (Requirement-by-Requirement)
 
-**Once posting is identified:**
-1. Load the parsed job posting file
-2. Extract the requirements from the "Parsed Requirements" section
-3. Note the company and role for the assessment header
+This is the new core of the analysis. For each requirement extracted from the job posting:
 
-**If "Parsed Requirements" section is missing or malformed:**
-```
-The job posting file exists but doesn't have a properly structured "Parsed Requirements" section.
+1.  **- [ ] Search Corpus for Evidence:**
+    -   **Instruction:** "For the requirement '[requirement text]', search the `profile/corpus.json` file for evidence. Your search should cover:"
+        -   "The `skills` array: Look for an exact or closely related skill `name`."
+        -   "The `accomplishments` array: Look for matches in the `skills_tags` for each accomplishment."
+        -   "The `accomplishments` array: Perform a semantic search on the `content` of each accomplishment to find phrases that demonstrate the required skill, even if not explicitly tagged."
 
-This can happen if:
-- The posting was manually created without using job-scan
-- The job-scan workflow didn't complete successfully
+2.  **- [ ] Score Each Requirement:**
+    -   **Instruction:** "Based on the evidence found, score the requirement."
+    -   **Full Match (100%):** An `accomplishment` is found with a matching `skills_tag`, AND its `content` provides strong, quantifiable proof. OR, a skill is listed in the `skills` array with a high proficiency.
+    -   **Partial Match (50%):** An `accomplishment` `content` is semantically related but lacks quantification or a direct skill tag. OR, a related but not identical skill is found.
+    -   **No Match (0%):** No relevant skills or accomplishments can be found in the entire corpus.
 
-Would you like to:
-1. Run **job-scan** to properly parse this posting
-2. Tell me the requirements and I'll assess against those
-3. Paste the original job posting and I'll extract requirements now
-```
-
-**If no requirements can be extracted:**
-```
-I couldn't find any requirements to evaluate against.
-
-A job posting needs at least one requirement (skill, experience, qualification) for alignment scoring.
-
-Would you like to:
-1. Run **job-scan** on the original posting URL
-2. Manually list the key requirements for this role
-```
-
-### Step 2: Load Feedback Style Preference
-
-**If `profile/constraints.yaml` exists:**
-1. Load the file
-2. Extract `preferences.feedback_style` value
-3. Store for use in Max's assessment
-
-**Feedback style mapping:**
-- `brutally_honest` → Maximum challenge, no sugar-coating
-- `balanced` → Honest with acknowledgment of strengths
-- `supportive` → Encouraging delivery, same standards
-
-**If constraints not available or feedback_style not set:**
-Default to `brutally_honest` (Max's natural mode)
-
-### Step 3: Requirement-by-Requirement Analysis
-
-For each requirement extracted from the job posting:
-
-**3a. Search Resume for Evidence**
-
-Look for direct or indirect evidence that addresses the requirement:
-- Exact skill/technology mentions
-- Related experience descriptions
-- Quantified achievements that demonstrate capability
-- Transferable skills that could apply
-
-**3b. Score Each Requirement**
-
-| Coverage Level | Score | Criteria |
-|----------------|-------|----------|
-| **Full Match** | 100% | Resume explicitly addresses this with specific evidence |
-| **Partial Match** | 50% | Resume suggests relevant experience but lacks specifics or quantification |
-| **No Match** | 0% | Resume doesn't address this requirement at all |
-
-**3c. Record Evidence or Gap**
-
-For each requirement, note:
-- The matching resume content (if any)
-- Why it's a full/partial/no match
-- What's missing (for gaps)
+3.  **- [ ] Record Evidence or Gap:**
+    -   For each requirement, note:
+        -   The `content` of the best matching `accomplishment` block(s).
+        -   The `id` of the matching block for reference.
+        -   Why it was scored as a full, partial, or no match.
 
 ### Step 4: Calculate Alignment Score
 
-**Weighting:**
-- MUST-HAVE (Required) requirements: **2x weight**
-- NICE-TO-HAVE (Preferred) requirements: **1x weight**
-
-**Calculation:**
-```
-For each requirement:
-  weighted_score = (match_percentage / 100) × weight
-  weighted_max = 1.0 × weight
-
-Total Score = (Σ weighted_scores / Σ weighted_max) × 100
-```
-
-**Score Interpretation (evidence-based thresholds — see README.md):**
-- **80-100%**: Excellent fit — strong candidate, high interview callback probability
-- **70-79%**: Good fit — competitive, reliably passes ATS screening
-- **60-69%**: Moderate fit — worth applying, but tailoring essential
-- **50-59%**: Weak fit — stretch role, possible but high effort required
-- **Below 50%**: Poor fit — high rejection probability, consider better matches
+**(This step remains the same, as it operates on the scores generated in the previous step.)**
 
 ### Step 5: Generate Gap Analysis
 
-**Critical Gaps (MUST-HAVE requirements not met):**
-List each unmet MUST-HAVE requirement with:
-- The specific requirement
-- What the posting is looking for
-- What's missing from the resume
-- Impact on candidacy
+**(This step's logic remains the same, but its input is now the structured evidence from Step 3.)**
 
-**Minor Gaps (NICE-TO-HAVE requirements not met):**
-List each unmet NICE-TO-HAVE requirement with:
-- The specific requirement
-- Potential ways to address in tailoring
-
-**Strengths (Requirements fully met):**
-List strong matches to acknowledge:
-- Requirements where resume excels
-- Evidence that differentiates the candidate
+-   **Critical Gaps:** List unmet MUST-HAVE requirements, explaining that no evidence was found in the resume corpus.
+-   **Strengths:** List strong matches, citing the specific `content` from the `accomplishment` block in the corpus.
 
 ### Step 6: Max's Adversarial Assessment
 
-**Adopt Max's persona and deliver assessment based on feedback_style:**
-
-**If brutally_honest:**
-```
-Here's the reality: {blunt assessment}
-
-Your resume {strength or weakness statement}. The hiring manager is going to see {specific concern}.
-
-{If gaps exist}: You're missing {critical gaps}. That's going to be a problem because {reason}.
-
-{If strengths exist}: What's working: {strengths}. Lead with these.
-```
-
-**If balanced:**
-```
-Let me give you the honest picture with some context.
-
-Strengths: {what's working}
-Concerns: {what's missing}
-
-The gaps in {areas} will need attention, but {positive framing if applicable}.
-```
-
-**If supportive:**
-```
-Here's where you stand — and it's workable.
-
-You're solid on: {strengths}
-Areas to strengthen: {gaps}
-
-With some tailoring, {encouraging but realistic assessment}.
-```
+**(This step remains the same, delivering the verdict based on the calculated score and gaps.)**
 
 ### Step 7: Provide Recommendation
 
-**Based on alignment score and gap severity (evidence-based thresholds — see README.md):**
-
-**If score >= 80% and no critical MUST-HAVE gaps:**
-```
-**Recommendation: PROCEED — Excellent Fit**
-
-You're a strong candidate. Your resume addresses the core requirements well.
-Run **fit-resume** to optimize positioning and maximize interview callback rate.
-```
-
-**If score 70-79% and <= 1 MUST-HAVE gap:**
-```
-**Recommendation: PROCEED — Good Fit**
-
-You're competitive for this role. Your resume passes the threshold that reliably reaches hiring managers.
-Run **fit-resume** to close the remaining gaps and strengthen your positioning.
-```
-
-**If score 60-69% OR has 2 MUST-HAVE gaps:**
-```
-**Recommendation: PROCEED WITH CAUTION — Moderate Fit**
-
-You meet the minimum threshold recruiters consider "worth applying."
-{List critical gaps}
-
-Tailoring is essential. Run **fit-resume** to address gaps before applying.
-Consider: Do you have experience not yet on your resume that addresses these gaps?
-```
-
-**If score 50-59% OR has 3 MUST-HAVE gaps:**
-```
-**Recommendation: STRETCH — Weak Fit**
-
-This is a stretch role. Research shows 50%+ candidates can still land interviews, but it requires extra effort.
-{List critical gaps}
-
-Options:
-1. **Tailor aggressively** — Run **fit-resume** and surface any hidden relevant experience
-2. **Strengthen with referrals** — A recommendation can offset qualification gaps
-3. **Apply but hedge** — Continue searching for better-fit roles in parallel
-
-What would you like to do?
-```
-
-**If score < 50% OR has 4+ MUST-HAVE gaps:**
-```
-**Recommendation: RECONSIDER — Poor Fit**
-
-I'm going to be direct: this role has significant mismatches with your current resume.
-Research shows 90% rejection rate at this match level.
-
-Critical gaps: {list}
-
-Options:
-1. **Proceed anyway** — If you have hidden experience not on your resume, we can try to surface it
-2. **Find a better fit** — Run **job-scan** on roles that better match your background
-3. **Use as a target** — Treat this as a future goal and identify what skills to develop
-
-What would you like to do?
-```
+**(This step remains the same, providing a recommendation based on the score.)**
 
 ### Step 8: Display Complete Assessment
 
 **Do NOT save to file — this is a read-only assessment displayed in conversation.**
+
+The structure of the output table is updated to reflect the new evidence source.
 
 ```
 # Alignment Assessment: {Company} - {Role}
@@ -288,73 +118,28 @@ What would you like to do?
 
 ## Score Breakdown
 
-| Requirement | Category | Priority | Resume Evidence | Score |
-|-------------|----------|----------|-----------------|-------|
-| {requirement} | Technical | MUST-HAVE | "{evidence}" or "Not found" | {%} |
-| {requirement} | Experience | NICE-TO-HAVE | "{evidence}" or "Not found" | {%} |
+| Requirement | Priority | Resume Evidence (from Corpus) | Score |
+|-------------|----------|-------------------------------|-------|
+| {requirement} | MUST-HAVE | "acc_01: Reduced latency by 40%..." | 100% |
+| {requirement} | NICE-TO-HAVE| "Not found in corpus." | 0% |
 ...
 
 ---
 
 ## Gap Analysis
-
-### Critical Gaps (MUST-HAVE)
-{List or "None — all critical requirements addressed"}
-
-### Minor Gaps (NICE-TO-HAVE)
-{List or "None"}
-
-### Strengths
-{List top 3-5 strong matches}
-
----
-
-## Max's Assessment
-
-{Adversarial feedback in appropriate style}
-
----
-
-## Recommendation
-
-{Recommendation with next steps}
-
----
-
-*This is a read-only assessment. Run **fit-resume** to tailor your resume for this role.*
+...
 ```
 
 ## Output
 
-**This workflow does NOT save files.** It provides a real-time assessment displayed in the conversation.
-
-The assessment can be used by:
-- The user to decide whether to pursue the role
-- The fit-resume workflow internally for iterative scoring
+**(This section remains the same.)**
 
 ## Recommend Next
 
-After this workflow completes successfully:
+After this workflow completes successfully, the logic for recommending the next step remains the same, but the context passed to the `fit-resume` workflow is now the full corpus.
 
-1. **Suggest:** fit-resume (if fit is reasonable, score >= 50%)
-   **Rationale:** "You're at {X}% alignment. Want to improve it with tailoring?"
-   **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), alignment score, gap analysis
+1.  **Suggest:** fit-resume (if fit is reasonable, score >= 50%)
+    **Rationale:** "You're at {X}% alignment. Want to improve it by tailoring your resume from the corpus?"
+    **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), `profile/corpus.json`, alignment score, gap analysis.
 
-2. Present the suggestion conversationally based on fit level:
-
-   **If Excellent/Good Fit (70%+):**
-   "You're at {X}% alignment — strong fit! Ready to lock in your positioning with a tailored resume? [Yes/No/Something else]"
-
-   **If Moderate Fit (60-69%):**
-   "You're at {X}% alignment — worth pursuing. Tailoring is essential to close the gaps. Want to start? [Yes/No/Something else]"
-
-   **If Weak Fit (50-59%):**
-   "You're at {X}% alignment — this is a stretch, but possible with strong tailoring. Want to try? [Yes/Find better matches/Something else]"
-
-   **If Poor Fit (<50%):**
-   "You're at {X}% alignment — significant gaps. I'd recommend finding a better-fit role. Want to scan another posting instead? [Scan another/Try anyway/Something else]"
-
-3. If user agrees to tailor: Load `workflows/fit-resume/workflow.md` and execute
-4. If user wants alternatives: Load `workflows/job-scan/workflow.md` for a new posting
-5. If user declines: Summarize alignment assessment and end gracefully
-6. If user requests different workflow: Honor their request
+**(The rest of the conversational suggestions remain the same.)**

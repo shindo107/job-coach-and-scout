@@ -37,17 +37,17 @@ This is a collection of **workflow files** that Claude Code reads and executes d
 
 | Workflow | Purpose |
 |----------|---------|
-| **init** | Meet Max & Scout, agree to privacy terms, initialize project, import resume & writing samples |
-| **scoping-interview** | Establish job search constraints and preferences |
+| **init** | Meet agents, agree to privacy terms, and parse your resume into a structured Resume Corpus. |
+| **scoping-interview** | Establish your job search constraints and preferences. |
 
 ### Resume Preparation
 
 | Workflow | Purpose |
 |----------|---------|
-| **job-scan** | Parse job posting, extract requirements, quick-fit assessment |
-| **evaluate-fit** | Cold, adversarial alignment scoring (read-only) |
-| **fit-resume** | Interview-driven resume tailoring for specific job |
-| **resume-review** | Adversarial review of master resume (no job context) |
+| **job-scan** | Parse job posting, extract requirements, quick-fit assessment. |
+| **evaluate-fit** | Score alignment between your Resume Corpus and a job's requirements. |
+| **fit-resume** | Tailor a resume for a specific job by selecting content from and adding new content to your corpus. |
+| **resume-review** | Adversarially review the contents of your Resume Corpus to improve the quality of your data. |
 
 ### Application Materials
 
@@ -61,6 +61,12 @@ This is a collection of **workflow files** that Claude Code reads and executes d
 |----------|---------|
 | **industry-research** | Analyze industries and verticals for your profile |
 | **company-discovery** | Find and evaluate target companies |
+
+### System & Maintenance
+
+| Workflow | Purpose |
+|----------|---------|
+| **audit** | Run a system audit to verify core workflows are functioning correctly |
 
 ## Agent Personas
 
@@ -79,33 +85,28 @@ job-coach-and-scout/
 ├── README.md                    # This file
 ├── .gitignore                   # Git ignore patterns
 ├── agents/                      # Agent persona definitions
-│   ├── job-coach.md            # Max persona
-│   └── job-scout.md            # Scout persona
+│   ├── job-coach.md
+│   └── job-scout.md
+│
+├── tools/                       # Utility scripts for validation
+│   ├── validate-json.sh        # Deterministic JSON validator
+│   └── validate-yaml.sh        # Deterministic YAML validator
 │
 ├── workflows/                   # Workflow definitions
 │   ├── init/                   # Project initialization
-│   ├── scoping-interview/      # Constraint gathering
-│   ├── job-scan/               # Job posting parsing
-│   ├── evaluate-fit/           # Alignment scoring
-│   ├── fit-resume/             # Resume tailoring
-│   ├── resume-review/          # Master resume review
-│   ├── cover-letter/           # Cover letter generation
-│   ├── industry-research/      # Industry analysis
-│   └── company-discovery/      # Company evaluation
+│   ├── ...                     # Other workflows
 │
 ├── profile/                     # Your data (created by init)
-│   ├── resume.md               # Master resume
+│   ├── corpus.json             # Your structured Resume Corpus
 │   ├── constraints.yaml        # Job search constraints
 │   └── writing_samples/        # Voice analysis samples
 │
 ├── applications/                # Generated outputs
-│   ├── resumes/                # Tailored resumes
+│   ├── resumes/                # Tailored resumes (in Markdown)
 │   └── cover_letters/          # Generated cover letters
 │
 └── research/                    # Market intelligence
-    ├── industries.md           # Industry analysis
-    ├── companies/              # Company profiles by industry
-    └── openings/               # Parsed job postings
+    ├── ...                     # Research files
 ```
 
 ## Getting Started
@@ -114,18 +115,17 @@ job-coach-and-scout/
    Ask Claude Code: "Help me set up my job search project"
 
    The init workflow will:
-   - Introduce both Max (Job Coach) and Scout (Job Scout)
-   - Show you what's needed to get started
-   - Ask for your agreement before processing personal data
-   - Set up your directory structure
-   - Import your resume and writing samples
+   - Introduce you to your agents, Max and Scout.
+   - Ask for your agreement before processing personal data.
+   - Parse your resume (from text or a file) into a structured **Resume Corpus** (`profile/corpus.json`). This becomes the central, queryable knowledge base of your entire career history.
+   - Set up the rest of the project directory structure.
 
 2. **Complete the scoping interview:**
    Ask Claude Code: "Run the scoping interview"
 
 3. **Start applying:**
-   - Provide a job posting and ask Claude Code to tailor your resume
-   - Or ask for a resume review to strengthen your baseline
+   - Provide a job posting and ask Claude Code to **tailor your resume**. The `fit-resume` workflow will now query your corpus to assemble the best possible resume.
+   - Or ask for a **corpus review** to strengthen your data.
 
 ## Privacy
 
@@ -163,7 +163,7 @@ The **evaluate-fit** and **fit-resume** workflows use evidence-based thresholds 
 
 | Data | Format | Location |
 |------|--------|----------|
-| Resume | Markdown | `profile/resume.md` |
+| Resume Corpus | JSON | `profile/corpus.json` |
 | Constraints | YAML | `profile/constraints.yaml` |
 | Tailored resumes | Markdown | `applications/resumes/{company}-{role}.md` |
 | Cover letters | Markdown | `applications/cover_letters/{company}-{role}.md` |

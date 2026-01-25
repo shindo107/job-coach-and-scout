@@ -5,11 +5,11 @@
 **Purpose:** Capture your job search preferences through a conversational interview
 **Agent:** Job Coach (Max)
 **Reads:**
-- `profile/resume.md` — Master resume for context (recommended)
+- `profile/corpus.json` — Structured Resume Corpus for context (recommended)
 **Creates:**
 - `profile/constraints.yaml` — Job search constraints and preferences
 **Approximate time:** 15-20 minutes (interactive interview)
-**Prerequisites:** init completed (resume imported)
+**Prerequisites:** init completed (corpus created)
 
 ---
 
@@ -18,16 +18,15 @@
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Master resume for context (recommended but not required)
+- `profile/corpus.json` — Resume Corpus for context (recommended but not required)
 
-**If resume doesn't exist:**
+**If corpus doesn't exist:**
 ```
-I'd like to review your resume to understand your background better, but I couldn't find `profile/resume.md`.
+I'd like to review your resume corpus to understand your background better, but I couldn't find `profile/corpus.json`.
 
 Would you like to:
 1. Continue without resume context (I'll ask more background questions)
-2. Provide your resume now (paste content or file path)
-3. Run the init workflow first to set up your project
+2. Run the init workflow first to create your resume corpus
 ```
 
 ## Steps
@@ -46,7 +45,7 @@ This scoping interview creates your `constraints.yaml` file — the rulebook tha
 - Everything stays local in your `constraints.yaml` file
 - You can update these constraints anytime by running this workflow again
 
-Let's start. I've got your resume for context, so I already know what you've done. Now I need to know what you want.
+Let's start. I've got your resume corpus for context, so I already have a structured understanding of what you've done. Now I need to know what you want.
 
 ### Step 2: Location & Work Arrangement
 
@@ -296,8 +295,23 @@ preferences:
 2. Show the user the full summary before saving
 3. Ask: "Does this look accurate? Anything you want to change before I save it?"
 4. If changes requested, update and re-display
-5. Save to `profile/constraints.yaml` using Write tool
+5. Save to `profile/constraints.yaml`
 6. Confirm save was successful
+
+### Step 9a: Validate Constraints File
+
+Now, I'll perform a quick check to make sure the `constraints.yaml` file is formatted correctly.
+
+**Actions:**
+1.  **- [ ] Execute validation script:**
+    -   Run the command: `cat profile/constraints.yaml | tools/validate-yaml.sh`
+2.  **- [ ] Handle result:**
+    -   **If the command succeeds (exit code 0):** The file is valid. Inform the user: "YAML validation successful. Your constraints file is well-formed." Proceed to the next step.
+    -   **If the command fails (non-zero exit code):** The file is invalid.
+        -   Report the error to the user: "I detected a formatting error in the `profile/constraints.yaml` file I just saved. The error is: [show stderr from the command]."
+        -   "I will attempt to fix this automatically."
+        -   Reread the content from the interview, regenerate the YAML, and save it again, overwriting the broken file.
+        -   Re-run the validation. If it fails a second time, ask the user for help or to skip.
 
 ### Step 10: Completion & Next Steps
 
@@ -340,7 +354,7 @@ After this workflow completes successfully:
 
 1. **Suggest:** job-scan OR industry-research (offer choice)
    **Rationale:** "Ready to start! Want to analyze a specific posting or research industries first?"
-   **Context to pass:** `profile/constraints.yaml` (just created), `profile/resume.md` (for fit analysis)
+   **Context to pass:** `profile/constraints.yaml` (just created), `profile/corpus.json` (for fit analysis)
 
 2. Present the suggestion conversationally:
    "Your constraints are set! Ready to start your job search. Would you like to:

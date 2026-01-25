@@ -18,7 +18,7 @@ Every workflow file follows this structure:
 ## Context Required
 
 Before starting, load these files:
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — The structured Resume Corpus (required)
 - `profile/constraints.yaml` — Job search constraints (required)
 
 If available, also load:
@@ -76,14 +76,14 @@ Lists files the workflow needs to function. Use two categories:
 **Required files** — Workflow cannot proceed without these:
 ```markdown
 Before starting, load these files:
-- `profile/resume.md` — Master resume (required)
+- `profile/corpus.json` — The structured Resume Corpus (required)
 - `profile/constraints.yaml` — Job search constraints (required)
 ```
 
 **Optional files** — Enhance workflow but not required:
 ```markdown
 If available, also load:
-- `applications/resumes/*.md` — Previous tailored resumes
+- `applications/resumes/*.md` — Previously generated resumes
 - `research/companies/{company}.md` — Existing company research
 ```
 
@@ -172,12 +172,11 @@ Would you like to:
 ### Missing Required File
 
 ```
-I need your resume to continue, but I couldn't find `profile/resume.md`.
+I need your Resume Corpus to continue, but I couldn't find `profile/corpus.json`.
 
 Would you like to:
-1. Provide a file path to your resume
-2. Paste your resume content directly
-3. Run the init workflow first to set up your project
+1. Run the init workflow to create your corpus from your resume
+2. Point me to the correct file path if you moved it
 ```
 
 ### Missing Optional File
@@ -251,32 +250,36 @@ Transform user input to valid file paths:
 ```
 job-coach-and-scout/
 ├── profile/                     # User data
-│   ├── resume.md               # Master resume
+│   ├── corpus.json             # Your structured Resume Corpus
 │   ├── constraints.yaml        # Job search constraints
 │   └── writing_samples/        # Voice analysis samples
+│
 ├── applications/                # Generated outputs
-│   ├── resumes/                # Tailored resumes
+│   ├── resumes/                # Tailored resumes (Markdown)
 │   └── cover_letters/          # Generated cover letters
-└── research/                    # Market intelligence
-    ├── companies/              # Company profiles by industry
-    │   └── {industry}/         # Industry subdirectory
-    ├── openings/               # Job posting analyses
-    └── industries.md           # Industry research summary
+│
+├── research/                    # Market intelligence
+│   ├── ...
+│
+└── tools/                       # Utility scripts
+    ├── validate-json.sh        # Deterministic JSON validator
+    └── validate-yaml.sh        # Deterministic YAML validator
 ```
 
 ## Available Workflows
 
 | Workflow | Purpose | Agent | Prerequisites |
 |----------|---------|-------|---------------|
-| **[init](init/workflow.md)** | Set up project structure, import resume & writing samples | Both | None |
-| **[scoping-interview](scoping-interview/workflow.md)** | Capture job search preferences and constraints | Max | init |
-| **[job-scan](job-scan/workflow.md)** | Parse job posting into structured requirements | Scout | None (constraints recommended) |
-| **[evaluate-fit](evaluate-fit/workflow.md)** | Assess alignment between resume and job (read-only) | Max | job-scan |
-| **[fit-resume](fit-resume/workflow.md)** | Tailor resume through interview-driven extraction | Max | job-scan |
-| **[cover-letter](cover-letter/workflow.md)** | Generate voice-matched cover letter | Max | job-scan (fit-resume recommended) |
-| **[resume-review](resume-review/workflow.md)** | Adversarial review to strengthen master resume | Max | init |
-| **[industry-research](industry-research/workflow.md)** | Research and tier industries by fit | Scout | init, scoping-interview |
-| **[company-discovery](company-discovery/workflow.md)** | Discover and rank companies in target industry | Scout | init, scoping-interview |
+| **[init](init/workflow.md)** | Parse a resume into the structured `corpus.json`. | Both | None |
+| **[scoping-interview](scoping-interview/workflow.md)** | Capture job search preferences and constraints. | Max | init |
+| **[job-scan](job-scan/workflow.md)** | Parse job posting into structured requirements. | Scout | None |
+| **[evaluate-fit](evaluate-fit/workflow.md)** | Assess alignment between `corpus.json` and a job. | Max | job-scan |
+| **[fit-resume](fit-resume/workflow.md)** | Tailor a resume by querying and updating `corpus.json`. | Max | job-scan |
+| **[cover-letter](cover-letter/workflow.md)** | Generate a voice-matched cover letter using corpus context. | Max | fit-resume |
+| **[resume-review](resume-review/workflow.md)** | Adversarially review and improve the contents of `corpus.json`. | Max | init |
+| **[industry-research](industry-research/workflow.md)** | Research and tier industries by fit. | Scout | init, scoping-interview |
+| **[company-discovery](company-discovery/workflow.md)** | Discover and rank companies in target industry. | Scout | init, scoping-interview |
+| **[audit](audit/workflow.md)** | Verify core workflows are functioning correctly. | Both | None |
 
 ## Workflow Dependency Graph
 
@@ -309,7 +312,9 @@ job-coach-and-scout/
                     │  cover-letter   │
                     └─────────────────┘
 
-     Standalone: resume-review (improves baseline, any time)
+     Standalone:
+     - resume-review (improves baseline, any time)
+     - audit (system verification, any time)
 ```
 
 ## Common User Journeys
@@ -398,18 +403,18 @@ Your progress persists in the filesystem — no database, no session storage. Th
 When you start a new Claude Code session:
 
 **Your profile is in `profile/`:**
-- `resume.md` — Your master resume
-- `constraints.yaml` — Job search preferences
-- `writing_samples/` — Voice analysis samples
+- `corpus.json` — Your structured Resume Corpus.
+- `constraints.yaml` — Your job search preferences.
+- `writing_samples/` — Your voice analysis samples.
 
 **Previous applications are in `applications/`:**
-- `resumes/` — Tailored resumes by company
-- `cover_letters/` — Generated cover letters
+- `resumes/` — Tailored resumes by company.
+- `cover_letters/` — Generated cover letters.
 
 **Research is in `research/`:**
-- `industries.md` — Industry tier analysis
-- `companies/{industry}/` — Company profiles
-- `openings/` — Parsed job postings
+- `industries.md` — Industry tier analysis.
+- `companies/{industry}/` — Company profiles.
+- `openings/` — Parsed job postings.
 
 ### Common Resume Commands
 
@@ -429,7 +434,7 @@ When you start a new Claude Code session:
 Ask "What have I done so far?" and Claude Code will:
 
 1. **Check `profile/` directory:**
-   - resume.md exists? "✓ Resume imported"
+   - corpus.json exists? "✓ Resume Corpus created"
    - constraints.yaml exists? "✓ Preferences captured"
    - writing_samples/ has files? "✓ Voice samples collected"
 

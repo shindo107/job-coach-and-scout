@@ -1,0 +1,25 @@
+# Sample Job Description
+
+**Role:** Senior Backend Engineer
+**Company:** Innovate Inc.
+**Location:** Remote
+
+Innovate Inc. is looking for a Senior Backend Engineer to join our growing infrastructure team. You will be responsible for designing, building, and maintaining the scalable, reliable services that power our core product.
+
+**Responsibilities:**
+- Design and develop microservices in Go.
+- Manage and scale our Kubernetes-based infrastructure.
+- Work with PostgreSQL databases to ensure data integrity and performance.
+- Collaborate with frontend and product teams to ship new features.
+- Mentor junior engineers.
+
+**MUST-HAVE Qualifications:**
+- 5+ years of professional software engineering experience.
+- Strong proficiency in Go (Golang).
+- Experience with containerization and orchestration (Docker, Kubernetes).
+- Deep understanding of relational databases (e.g., PostgreSQL).
+
+**NICE-TO-HAVE Qualifications:**
+- Experience with gRPC for inter-service communication.
+- Familiarity with cloud platforms (AWS, GCP).
+- Experience with CI/CD pipelines (e.g., Jenkins, GitLab CI).
