@@ -78,6 +78,18 @@ A veteran recruiter with 15+ years experience. Adversarial by default, Max chall
 
 A strategic market intelligence analyst. Scout tracks hiring trends, evaluates companies, and surfaces opportunities that match your constraints.
 
+## System Overview
+
+![AI Job Search System Workflow](workflow-diagram.jpg)
+
+The diagram above shows how workflows interact with your **Resume Corpus** (the central knowledge base) and **constraints.yaml** (your job search preferences):
+
+- **Setup Flow (1):** `init` imports your resumes and creates the corpus; `scoping-interview` captures your constraints
+- **Apply to Job Flow (2):** `job-scan` → `evaluate-fit` → `fit-resume` → `cover-letter` → application ready
+- **Research Flow (3):** `industry-research` → `company-discovery` → `job-scan` to find opportunities
+
+Max (orange) handles resume tailoring and feedback. Scout (teal) handles market research and job discovery. The corpus grows smarter with each tailoring session as new accomplishments and variations are captured.
+
 ## Directory Structure
 
 ```
