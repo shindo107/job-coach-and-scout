@@ -1,8 +1,17 @@
 # Scoping Interview
 
-**Agent:** Job Coach (Max)
+## Summary
 
-**Purpose:** Establish your job search constraints and preferences through a conversational interview, creating the `constraints.yaml` file that guides all future workflows.
+**Purpose:** Capture your job search preferences through a conversational interview
+**Agent:** Job Coach (Max)
+**Reads:**
+- `profile/resume.md` — Master resume for context (recommended)
+**Creates:**
+- `profile/constraints.yaml` — Job search constraints and preferences
+**Approximate time:** 15-20 minutes (interactive interview)
+**Prerequisites:** init completed (resume imported)
+
+---
 
 **Trigger:** User asks "help me set up my constraints", "run the scoping interview", or after completing the init workflow
 
@@ -327,6 +336,20 @@ Save the result to: `profile/constraints.yaml`
 
 ## Recommend Next
 
-After completing this workflow, suggest: **job-scan** or **resume-review**
+After this workflow completes successfully:
 
-Now that your constraints are established, you can either scan a specific job posting for fit analysis, or have me review your master resume before you start tailoring it.
+1. **Suggest:** job-scan OR industry-research (offer choice)
+   **Rationale:** "Ready to start! Want to analyze a specific posting or research industries first?"
+   **Context to pass:** `profile/constraints.yaml` (just created), `profile/resume.md` (for fit analysis)
+
+2. Present the suggestion conversationally:
+   "Your constraints are set! Ready to start your job search. Would you like to:
+   - **Analyze a specific job posting** — If you have a posting in mind, I'll scan it and assess your fit
+   - **Research industries first** — If you're exploring, I'll help you identify the best industries for your skills
+
+   Which direction? [Job posting/Research industries/Something else]"
+
+3. If user chooses job posting: Load `workflows/job-scan/workflow.md` and execute
+4. If user chooses research: Load `workflows/industry-research/workflow.md` and execute
+5. If user declines: Summarize what was accomplished and end gracefully
+6. If user requests different workflow: Honor their request

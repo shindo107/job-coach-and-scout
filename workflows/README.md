@@ -266,16 +266,220 @@ job-coach-and-scout/
 
 ## Available Workflows
 
-| # | Workflow | Agent | Purpose | Trigger |
-|---|----------|-------|---------|---------|
-| 1 | [init](init/workflow.md) | Max & Scout | Set up project structure, import resume and writing samples | First workflow for new projects |
-| 2 | scoping-interview | Max | Establish job search constraints and preferences | User wants to define job search criteria |
-| 3 | job-scan | Max | Parse job posting into structured requirements | User provides a job posting to analyze |
-| 4 | evaluate-fit | Max | Calculate alignment score (read-only assessment) | User asks "how well do I fit this job?" |
-| 5 | fit-resume | Max | Tailor resume through interview-driven probing | User wants to tailor resume for a specific job |
-| 6 | cover-letter | Max | Generate voice-matched cover letter | User needs a cover letter for an application |
-| 7 | resume-review | Max | Adversarial review of master resume | User wants feedback on their resume |
-| 8 | industry-research | Scout | Analyze industries and tier by fit | User exploring which industries to target |
-| 9 | company-discovery | Scout | Discover and evaluate target companies | User looking for companies to apply to |
+| Workflow | Purpose | Agent | Prerequisites |
+|----------|---------|-------|---------------|
+| **[init](init/workflow.md)** | Set up project structure, import resume & writing samples | Both | None |
+| **[scoping-interview](scoping-interview/workflow.md)** | Capture job search preferences and constraints | Max | init |
+| **[job-scan](job-scan/workflow.md)** | Parse job posting into structured requirements | Scout | None (constraints recommended) |
+| **[evaluate-fit](evaluate-fit/workflow.md)** | Assess alignment between resume and job (read-only) | Max | job-scan |
+| **[fit-resume](fit-resume/workflow.md)** | Tailor resume through interview-driven extraction | Max | job-scan |
+| **[cover-letter](cover-letter/workflow.md)** | Generate voice-matched cover letter | Max | job-scan (fit-resume recommended) |
+| **[resume-review](resume-review/workflow.md)** | Adversarial review to strengthen master resume | Max | init |
+| **[industry-research](industry-research/workflow.md)** | Research and tier industries by fit | Scout | init, scoping-interview |
+| **[company-discovery](company-discovery/workflow.md)** | Discover and rank companies in target industry | Scout | init, scoping-interview |
 
-To see what workflows are available, ask Claude Code: "What workflows are available?" and it will list these with their purposes.
+## Workflow Dependency Graph
+
+```
+                    ┌─────────────────┐
+                    │      init       │
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │ scoping-interview│
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+     ┌────────▼────────┐     │     ┌────────▼────────┐
+     │ industry-research│     │     │    job-scan     │
+     └────────┬────────┘     │     └────────┬────────┘
+              │              │              │
+     ┌────────▼────────┐     │     ┌────────▼────────┐
+     │company-discovery│     │     │  evaluate-fit   │
+     └────────┬────────┘     │     └────────┬────────┘
+              │              │              │
+              └──────────────┼──────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   fit-resume    │
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  cover-letter   │
+                    └─────────────────┘
+
+     Standalone: resume-review (improves baseline, any time)
+```
+
+## Common User Journeys
+
+### First-Time Setup
+```
+init → scoping-interview
+```
+Get your project set up and capture your job search preferences.
+
+### Apply to a Specific Job
+```
+job-scan → evaluate-fit → fit-resume → cover-letter
+```
+The complete application workflow: parse the posting, assess your fit, tailor your resume, generate a cover letter.
+
+### Quick Application (Skip Fit Evaluation)
+```
+job-scan → fit-resume → cover-letter
+```
+If you're confident about the role, skip the read-only assessment and go straight to tailoring.
+
+### Research Mode (Exploring Options)
+```
+industry-research → company-discovery → job-scan
+```
+Start broad: research industries, discover companies, then target specific postings.
+
+### Improve Your Baseline
+```
+resume-review (standalone)
+```
+Strengthen your master resume before any applications. Can be done anytime.
+
+## Multi-Workflow Requests (Batch Execution)
+
+You can request multiple workflows in a single conversation. Claude Code will execute them in sequence, passing context forward.
+
+### Example Patterns
+
+**"Scan this posting and tailor my resume"**
+```
+1. job-scan (parses requirements)
+2. fit-resume (uses parsed requirements as input)
+```
+
+**"Full application for this posting"**
+```
+1. job-scan (parses requirements)
+2. fit-resume (tailors resume against requirements)
+3. cover-letter (generates letter using tailored resume)
+```
+
+**"Research fintech and find companies"**
+```
+1. industry-research (tiers industries, identifies fintech fit)
+2. company-discovery (discovers companies in fintech)
+```
+
+### Context Passing
+
+Each workflow automatically passes its outputs to the next:
+- **job-scan** → `research/openings/{company}-{role}.md` → **fit-resume**
+- **fit-resume** → `applications/resumes/{company}-{role}.md` → **cover-letter**
+- **industry-research** → `research/industries.md` → **company-discovery**
+
+### Partial Failure Handling
+
+If a workflow in a sequence fails:
+- The sequence stops at that point
+- Claude Code reports what failed and why
+- Previous outputs are preserved
+- You can fix the issue and continue from the failure point
+
+## Cross-Session Continuity
+
+### All State is in Files
+
+Your progress persists in the filesystem — no database, no session storage. This means:
+- You can close Claude Code and resume later
+- A new session can read all previous outputs
+- Multiple sessions can work on the same project
+
+### Resuming Previous Work
+
+When you start a new Claude Code session:
+
+**Your profile is in `profile/`:**
+- `resume.md` — Your master resume
+- `constraints.yaml` — Job search preferences
+- `writing_samples/` — Voice analysis samples
+
+**Previous applications are in `applications/`:**
+- `resumes/` — Tailored resumes by company
+- `cover_letters/` — Generated cover letters
+
+**Research is in `research/`:**
+- `industries.md` — Industry tier analysis
+- `companies/{industry}/` — Company profiles
+- `openings/` — Parsed job postings
+
+### Common Resume Commands
+
+```
+"Continue tailoring for Stripe"
+→ Loads existing work from applications/resumes/stripe-*.md
+
+"What have I done so far?"
+→ Summarizes all output directories and files
+
+"Start a new application for Netflix"
+→ Begins fresh job-scan for Netflix posting
+```
+
+### Status Check Capability
+
+Ask "What have I done so far?" and Claude Code will:
+
+1. **Check `profile/` directory:**
+   - resume.md exists? "✓ Resume imported"
+   - constraints.yaml exists? "✓ Preferences captured"
+   - writing_samples/ has files? "✓ Voice samples collected"
+
+2. **Check `applications/` directory:**
+   - List all resumes in `applications/resumes/`
+   - List all cover letters in `applications/cover_letters/`
+
+3. **Check `research/` directory:**
+   - industries.md exists? "✓ Industry research done"
+   - companies/ has subdirectories? "✓ Company profiles created"
+
+4. **Present summary:**
+   ```
+   Here's what you've done so far:
+   - Profile: Complete (resume, constraints, 3 writing samples)
+   - Applications: 2 tailored resumes (Stripe, Acme), 1 cover letter (Stripe)
+   - Research: Industry analysis complete, 8 fintech companies profiled
+
+   What would you like to work on next?
+   ```
+
+## How to Run Workflows
+
+Just ask Claude Code naturally:
+
+| What You Say | Workflow Triggered |
+|--------------|-------------------|
+| "Help me get started" | init |
+| "Set up my constraints" | scoping-interview |
+| "Scan this job posting" | job-scan |
+| "How well do I match?" | evaluate-fit |
+| "Tailor my resume for Stripe" | fit-resume |
+| "Write a cover letter" | cover-letter |
+| "Review my resume" | resume-review |
+| "Research industries for me" | industry-research |
+| "Find fintech companies" | company-discovery |
+
+## Workflow Explanation
+
+To understand what a workflow does before running it, ask:
+
+```
+"What does fit-resume do?"
+"Explain the cover-letter workflow"
+"What files does job-scan create?"
+```
+
+Claude Code will read the workflow's Summary section and explain:
+- What the workflow does
+- What files it reads
+- What files it creates
+- Approximate time required
+- Prerequisites needed

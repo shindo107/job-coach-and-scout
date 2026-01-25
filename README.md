@@ -137,6 +137,28 @@ job-coach-and-scout/
 - No telemetry, analytics, or external calls from this project
 - Data processed in Claude Code sessions is subject to Anthropic's data handling policies
 
+## Alignment Score Thresholds
+
+The **evaluate-fit** and **fit-resume** workflows use evidence-based thresholds derived from recruiting industry research:
+
+| Score | Verdict | Recommendation |
+|-------|---------|----------------|
+| **80-100%** | Excellent Fit | PROCEED — 2-3x higher interview callback rate |
+| **70-79%** | Good Fit | PROCEED — Reliably passes ATS screening |
+| **60-69%** | Moderate Fit | PROCEED WITH CAUTION — Minimum competitive threshold |
+| **50-59%** | Weak Fit | STRETCH — Possible but requires extra effort |
+| **Below 50%** | Poor Fit | RECONSIDER — ~90% rejection rate |
+
+**MUST-HAVE gap adjustments:** Missing 2+ critical requirements drops recommendations regardless of overall score.
+
+### Research Sources
+
+- **80%+ threshold**: Candidates with 80%+ match receive 2-3x more interview callbacks ([Jobscan](https://www.jobscan.co/blog/what-jobscan-match-rate-should-i-aim-for/), [ERE](https://www.ere.net/articles/why-good-candidates-fail-beware-the-90-percent-job-fit))
+- **70%+ threshold**: Resumes at 70%+ reliably bypass ATS filters ([Parkes Career Services](https://www.parkescareerservices.com/post/decoding-ats-what-percentage-must-your-resume-match-to-get-noticed))
+- **60% threshold**: 60% qualified with a referral often beats 100% qualified with none ([InHerSight](https://www.inhersight.com/blog/insight-commentary/why-60-percent-qualified-is-enough))
+- **50% threshold**: TalentWorks found 50% match gets interviews nearly as often as 90%+ ([CNBC](https://www.cnbc.com/2018/12/12/matching-half-of-a-jobs-requirements-might-still-get-you-an-interview.html))
+- **Below 50%**: Sub-60% match rates see ~90% human reviewer rejection ([Jobscan](https://www.jobscan.co/blog/what-jobscan-match-rate-should-i-aim-for/))
+
 ## File Formats
 
 | Data | Format | Location |

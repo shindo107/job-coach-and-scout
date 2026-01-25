@@ -1,8 +1,23 @@
 # Init Workflow
 
-**Agent:** Job Coach (Max) & Job Scout
+## Summary
 
-**Purpose:** Set up your job search project with the correct directory structure, import your resume and writing samples, and prepare for the scoping interview.
+**Purpose:** Set up your job search project with directory structure, import resume and writing samples
+**Agent:** Job Coach (Max) & Job Scout
+**Reads:**
+- User-provided resume (file path or pasted content)
+- User-provided writing samples (optional)
+**Creates:**
+- `profile/resume.md` — Your master resume
+- `profile/writing_samples/` — Voice analysis samples
+- `applications/resumes/` — Directory for tailored resumes
+- `applications/cover_letters/` — Directory for cover letters
+- `research/companies/` — Directory for company profiles
+- `research/openings/` — Directory for job posting analyses
+**Approximate time:** 5-10 minutes (interactive)
+**Prerequisites:** None — this is the starting workflow
+
+---
 
 **Trigger:** First workflow for new projects, or user says "help me set up" or "initialize my project"
 
@@ -124,6 +139,50 @@ Place your writing samples here for voice analysis. Good samples include:
 The more samples you provide, the better Max can match your voice when generating cover letters.
 ```
 
+`applications/resumes/README.md`:
+```markdown
+# Tailored Resumes
+
+This folder contains resumes tailored for specific job applications.
+
+Files are created by the fit-resume workflow and named: `{company}-{role}.md`
+
+Example: `acme-senior-engineer.md`
+```
+
+`applications/cover_letters/README.md`:
+```markdown
+# Cover Letters
+
+This folder contains cover letters generated for specific job applications.
+
+Files are created by the cover-letter workflow and named: `{company}-{role}.md`
+
+Example: `stripe-staff-engineer.md`
+```
+
+`research/companies/README.md`:
+```markdown
+# Company Research
+
+This folder contains company profiles and research created by Scout.
+
+Files are organized by industry and named: `{industry}/{company}.md`
+
+Example: `fintech/stripe.md`
+```
+
+`research/openings/README.md`:
+```markdown
+# Job Opening Analyses
+
+This folder contains analyzed job postings and opportunity assessments.
+
+Files are named: `{company}-{role}.md`
+
+Example: `netflix-principal-engineer.md`
+```
+
 ### Step 4: Resume Import
 
 Now let's import your resume.
@@ -224,6 +283,13 @@ Created directories:
 - research/companies/
 - research/openings/
 
+Created placeholder READMEs:
+- profile/writing_samples/README.md
+- applications/resumes/README.md
+- applications/cover_letters/README.md
+- research/companies/README.md
+- research/openings/README.md
+
 Imported files:
 - profile/resume.md [or "Not imported - add before using fit-resume"]
 - profile/writing_samples/[list of samples] [or "None imported"]
@@ -256,9 +322,22 @@ The scoping interview is where we establish your job search constraints — what
 - `profile/resume.md` (user's master resume)
 - `profile/writing_samples/README.md` (placeholder with instructions)
 - `profile/writing_samples/*` (imported samples, if any)
+- `applications/resumes/README.md` (placeholder with instructions)
+- `applications/cover_letters/README.md` (placeholder with instructions)
+- `research/companies/README.md` (placeholder with instructions)
+- `research/openings/README.md` (placeholder with instructions)
 
 ## Recommend Next
 
-After completing this workflow, run: **scoping-interview**
+After this workflow completes successfully:
 
-The scoping interview establishes your job search constraints and creates `profile/constraints.yaml`, which is required for most other workflows.
+1. **Suggest:** scoping-interview
+   **Rationale:** "Let's capture your job search preferences next"
+   **Context to pass:** `profile/resume.md` (imported resume), `profile/writing_samples/` (if any)
+
+2. Present the suggestion conversationally:
+   "Great, your project is set up! Let's capture your job search preferences next — salary expectations, location, remote preferences, and dealbreakers. This creates your `constraints.yaml` file that guides all future workflows. Ready to start the scoping interview? [Yes/No/Something else]"
+
+3. If user agrees: Load `workflows/scoping-interview/workflow.md` and execute
+4. If user declines: Summarize what was accomplished and end gracefully
+5. If user requests different workflow: Honor their request
