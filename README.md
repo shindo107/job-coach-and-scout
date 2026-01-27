@@ -14,6 +14,16 @@ This is a collection of **workflow files** that Claude Code reads and executes d
 - Claude Code (Claude Pro subscription)
 - That's it. No dependencies, no API keys, no installation.
 
+## How It Works
+
+![Job Coach Flywheel](flywheel.jpg)
+
+**Full history captured. Relevant slice delivered.**
+
+The system builds a complete corpus of your career story over time — every experience, every accomplishment, every way you've described your work. When you apply to a job, it tailors that full story down to exactly what *this* hiring manager needs to see.
+
+Each application makes the system smarter: new experiences extracted during tailoring flow back into the corpus, giving you more to draw from next time.
+
 ## How to Use
 
 1. Open this project directory in Claude Code
