@@ -13,13 +13,13 @@
 **Creates:**
 - `applications/cover_letters/{company}-{role}.md` — Voice-matched cover letter with metadata
 **Approximate time:** 15-25 minutes (voice analysis + iterative refinement)
-**Prerequisites:** job-scan completed; fit-resume recommended
+**Prerequisites:** job-scan completed; tailor-resume recommended
 
 ---
 
 > **VOICE-MATCHED GENERATION**: Analyzes your writing samples to capture your authentic voice, then generates a personalized cover letter that sounds like you wrote it.
 
-**Trigger:** User says "help me write a cover letter for [company]", "cover letter for [role]", or after fit-resume suggests generating a cover letter
+**Trigger:** User says "help me write a cover letter for [company]", "cover letter for [role]", or after tailor-resume suggests generating a cover letter
 
 ## Session Continuity
 

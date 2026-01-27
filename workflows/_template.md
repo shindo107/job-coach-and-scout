@@ -16,7 +16,7 @@
 <!-- Examples:
   - "User says 'help me tailor my resume for [company]'"
   - "User asks to evaluate a job posting"
-  - "Automatically suggested after completing fit-resume"
+  - "Automatically suggested after completing tailor-resume"
 -->
 
 ## Context Required
@@ -112,7 +112,7 @@ WORKFLOW TYPE EXAMPLES
 EXAMPLE 1: Resume Tailoring Workflow
 ================================================================================
 
-# Fit Resume
+# Tailor Resume
 
 **Agent:** Job Coach (Max)
 

@@ -136,9 +136,9 @@ The structure of the output table is updated to reflect the new evidence source.
 
 ## Recommend Next
 
-After this workflow completes successfully, the logic for recommending the next step remains the same, but the context passed to the `fit-resume` workflow is now the full corpus.
+After this workflow completes successfully, the logic for recommending the next step remains the same, but the context passed to the `tailor-resume` workflow is now the full corpus.
 
-1.  **Suggest:** fit-resume (if fit is reasonable, score >= 50%)
+1.  **Suggest:** tailor-resume (if fit is reasonable, score >= 50%)
     **Rationale:** "You're at {X}% alignment. Want to improve it by tailoring your resume from the corpus?"
     **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), `profile/corpus.json`, alignment score, gap analysis.
 

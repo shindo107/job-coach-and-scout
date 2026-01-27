@@ -35,38 +35,38 @@ This is a collection of **workflow files** that Claude Code reads and executes d
 
 ### Setup & Onboarding
 
-| Workflow | Purpose |
-|----------|---------|
-| **init** | Meet agents, agree to privacy terms, and parse your resume into a structured Resume Corpus. |
-| **scoping-interview** | Establish your job search constraints and preferences. |
+| Workflow | Purpose | Inputs | Outputs |
+|----------|---------|--------|---------|
+| **init** | Parse resumes into structured corpus | Your resume(s) — file, URL, or pasted | `profile/corpus.json` |
+| **scoping-interview** | Capture job search preferences | Conversational Q&A | `profile/constraints.yaml` |
 
 ### Resume Preparation
 
-| Workflow | Purpose |
-|----------|---------|
-| **job-scan** | Parse job posting, extract requirements, quick-fit assessment. |
-| **evaluate-fit** | Score alignment between your Resume Corpus and a job's requirements. |
-| **fit-resume** | Tailor a resume for a specific job by selecting content from and adding new content to your corpus. |
-| **resume-review** | Adversarially review the contents of your Resume Corpus to improve the quality of your data. |
+| Workflow | Purpose | Inputs | Outputs |
+|----------|---------|--------|---------|
+| **job-scan** | Parse job posting into requirements | Job posting (URL, file, or pasted) | `research/openings/{company}-{role}.md` |
+| **evaluate-fit** | Score alignment with job requirements | `corpus.json` + job posting | Display only (no file) |
+| **tailor-resume** | Tailor resume for specific job | `corpus.json` + job posting | `applications/resumes/{company}-{role}.md` |
+| **resume-review** | Adversarial review of corpus | `corpus.json` | Updated `corpus.json` |
 
 ### Application Materials
 
-| Workflow | Purpose |
-|----------|---------|
-| **cover-letter** | Generate voice-matched cover letter |
+| Workflow | Purpose | Inputs | Outputs |
+|----------|---------|--------|---------|
+| **cover-letter** | Voice-matched cover letter | `corpus.json` + tailored resume + writing samples | `applications/cover_letters/{company}-{role}.md` |
 
 ### Research & Discovery
 
-| Workflow | Purpose |
-|----------|---------|
-| **industry-research** | Analyze industries and verticals for your profile |
-| **company-discovery** | Find and evaluate target companies |
+| Workflow | Purpose | Inputs | Outputs |
+|----------|---------|--------|---------|
+| **industry-research** | Analyze industries by fit | `corpus.json` + `constraints.yaml` | `research/industries.md` |
+| **company-discovery** | Find and rank target companies | `corpus.json` + `constraints.yaml` + industry | `research/companies/{industry}/*.md` |
 
 ### System & Maintenance
 
-| Workflow | Purpose |
-|----------|---------|
-| **audit** | Run a system audit to verify core workflows are functioning correctly |
+| Workflow | Purpose | Inputs | Outputs |
+|----------|---------|--------|---------|
+| **audit** | Verify core workflows function correctly | None | Audit report (display only) |
 
 ## Agent Personas
 
@@ -85,7 +85,7 @@ A strategic market intelligence analyst. Scout tracks hiring trends, evaluates c
 The diagram above shows how workflows interact with your **Resume Corpus** (the central knowledge base) and **constraints.yaml** (your job search preferences):
 
 - **Setup Flow (1):** `init` imports your resumes and creates the corpus; `scoping-interview` captures your constraints
-- **Apply to Job Flow (2):** `job-scan` → `evaluate-fit` → `fit-resume` → `cover-letter` → application ready
+- **Apply to Job Flow (2):** `job-scan` → `evaluate-fit` → `tailor-resume` → `cover-letter` → application ready
 - **Research Flow (3):** `industry-research` → `company-discovery` → `job-scan` to find opportunities
 
 Max (orange) handles resume tailoring and feedback. Scout (teal) handles market research and job discovery. The corpus grows smarter with each tailoring session as new accomplishments and variations are captured.
@@ -136,7 +136,7 @@ job-coach-and-scout/
    Ask Claude Code: "Run the scoping interview"
 
 3. **Start applying:**
-   - Provide a job posting and ask Claude Code to **tailor your resume**. The `fit-resume` workflow will now query your corpus to assemble the best possible resume.
+   - Provide a job posting and ask Claude Code to **tailor your resume**. The `tailor-resume` workflow will now query your corpus to assemble the best possible resume.
    - Or ask for a **corpus review** to strengthen your data.
 
 ## Privacy
@@ -151,7 +151,7 @@ job-coach-and-scout/
 
 ## Alignment Score Thresholds
 
-The **evaluate-fit** and **fit-resume** workflows use evidence-based thresholds derived from recruiting industry research:
+The **evaluate-fit** and **tailor-resume** workflows use evidence-based thresholds derived from recruiting industry research:
 
 | Score | Verdict | Recommendation |
 |-------|---------|----------------|

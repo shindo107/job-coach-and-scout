@@ -511,7 +511,7 @@ Would you like to scan a specific job posting from one of these companies?
 ```
 Your company research is saved in `research/companies/{industry}/`.
 
-When you find a specific job posting you're interested in, run job-scan to analyze it and fit-resume to tailor your resume.
+When you find a specific job posting you're interested in, run job-scan to analyze it and tailor-resume to tailor your resume.
 
 Good luck with your job search!
 ```

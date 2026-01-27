@@ -330,7 +330,7 @@ Save the result to: `research/openings/{company}-{role}.md`
 
 After this workflow completes successfully:
 
-1. **Suggest:** evaluate-fit OR fit-resume
+1. **Suggest:** evaluate-fit OR tailor-resume
    **Rationale:** "Posting parsed. Want a quick fit check or ready to start tailoring?"
    **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), `profile/corpus.json`, `profile/constraints.yaml`
 
@@ -342,6 +342,6 @@ After this workflow completes successfully:
    Which approach? [Evaluate fit/Start tailoring/Something else]"
 
 3. If user chooses evaluate-fit: Load `workflows/evaluate-fit/workflow.md` and execute
-4. If user chooses fit-resume: Load `workflows/fit-resume/workflow.md` and execute
+4. If user chooses tailor-resume: Load `workflows/tailor-resume/workflow.md` and execute
 5. If user declines: Summarize what was accomplished and end gracefully
 6. If user requests different workflow: Honor their request

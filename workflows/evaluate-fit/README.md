@@ -79,4 +79,4 @@ This reflects that missing critical requirements has outsized impact on candidac
 ## Related Workflows
 
 - **job-scan** (upstream): Creates the parsed job posting this workflow evaluates against
-- **fit-resume** (downstream): Uses evaluate-fit scoring during iterative resume tailoring
+- **tailor-resume** (downstream): Uses evaluate-fit scoring during iterative resume tailoring

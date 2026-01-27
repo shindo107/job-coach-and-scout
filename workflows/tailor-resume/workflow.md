@@ -1,4 +1,4 @@
-# Fit Resume
+# Tailor Resume
 
 ## Summary
 
@@ -26,7 +26,7 @@
 
 - **To pause:** At any checkpoint, say "take a break" or simply close the session
 - **To resume:** In the same Claude Code session, say "let's continue" or "where were we?"
-- **To resume in a new session:** Say "continue fit-resume for {company}" — Claude Code will reload context and ask where you left off
+- **To resume in a new session:** Say "continue tailor-resume for {company}" — Claude Code will reload context and ask where you left off
 
 **Checkpoints are provided after each gap is addressed** (see Step 3f), summarizing:
 - Which gap was just addressed

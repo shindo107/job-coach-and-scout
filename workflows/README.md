@@ -67,7 +67,7 @@ Every workflow begins with three required header fields:
 - `User says "help me tailor my resume for [company]"`
 - `User asks to evaluate a job posting`
 - `First workflow for new projects`
-- `Automatically suggested after completing fit-resume`
+- `Automatically suggested after completing tailor-resume`
 
 ## Context Required Section
 
@@ -275,8 +275,8 @@ job-coach-and-scout/
 | **[scoping-interview](scoping-interview/workflow.md)** | Capture job search preferences and constraints. | Max | init |
 | **[job-scan](job-scan/workflow.md)** | Parse job posting into structured requirements. | Scout | None |
 | **[evaluate-fit](evaluate-fit/workflow.md)** | Assess alignment between `corpus.json` and a job. | Max | job-scan |
-| **[fit-resume](fit-resume/workflow.md)** | Tailor a resume by querying and updating `corpus.json`. | Max | job-scan |
-| **[cover-letter](cover-letter/workflow.md)** | Generate a voice-matched cover letter using corpus context. | Max | fit-resume |
+| **[tailor-resume](tailor-resume/workflow.md)** | Tailor a resume by querying and updating `corpus.json`. | Max | job-scan |
+| **[cover-letter](cover-letter/workflow.md)** | Generate a voice-matched cover letter using corpus context. | Max | tailor-resume |
 | **[resume-review](resume-review/workflow.md)** | Adversarially review and improve the contents of `corpus.json`. | Max | init |
 | **[industry-research](industry-research/workflow.md)** | Research and tier industries by fit. | Scout | init, scoping-interview |
 | **[company-discovery](company-discovery/workflow.md)** | Discover and rank companies in target industry. | Scout | init, scoping-interview |
@@ -306,7 +306,7 @@ job-coach-and-scout/
               └──────────────┼──────────────┘
                              │
                     ┌────────▼────────┐
-                    │   fit-resume    │
+                    │   tailor-resume    │
                     └────────┬────────┘
                              │
                     ┌────────▼────────┐
@@ -328,13 +328,13 @@ Get your project set up and capture your job search preferences.
 
 ### Apply to a Specific Job
 ```
-job-scan → evaluate-fit → fit-resume → cover-letter
+job-scan → evaluate-fit → tailor-resume → cover-letter
 ```
 The complete application workflow: parse the posting, assess your fit, tailor your resume, generate a cover letter.
 
 ### Quick Application (Skip Fit Evaluation)
 ```
-job-scan → fit-resume → cover-letter
+job-scan → tailor-resume → cover-letter
 ```
 If you're confident about the role, skip the read-only assessment and go straight to tailoring.
 
@@ -359,13 +359,13 @@ You can request multiple workflows in a single conversation. Claude Code will ex
 **"Scan this posting and tailor my resume"**
 ```
 1. job-scan (parses requirements)
-2. fit-resume (uses parsed requirements as input)
+2. tailor-resume (uses parsed requirements as input)
 ```
 
 **"Full application for this posting"**
 ```
 1. job-scan (parses requirements)
-2. fit-resume (tailors resume against requirements)
+2. tailor-resume (tailors resume against requirements)
 3. cover-letter (generates letter using tailored resume)
 ```
 
@@ -378,8 +378,8 @@ You can request multiple workflows in a single conversation. Claude Code will ex
 ### Context Passing
 
 Each workflow automatically passes its outputs to the next:
-- **job-scan** → `research/openings/{company}-{role}.md` → **fit-resume**
-- **fit-resume** → `applications/resumes/{company}-{role}.md` → **cover-letter**
+- **job-scan** → `research/openings/{company}-{role}.md` → **tailor-resume**
+- **tailor-resume** → `applications/resumes/{company}-{role}.md` → **cover-letter**
 - **industry-research** → `research/industries.md` → **company-discovery**
 
 ### Partial Failure Handling
@@ -467,7 +467,7 @@ Just ask Claude Code naturally:
 | "Set up my constraints" | scoping-interview |
 | "Scan this job posting" | job-scan |
 | "How well do I match?" | evaluate-fit |
-| "Tailor my resume for Stripe" | fit-resume |
+| "Tailor my resume for Stripe" | tailor-resume |
 | "Write a cover letter" | cover-letter |
 | "Review my resume" | resume-review |
 | "Research industries for me" | industry-research |
@@ -478,7 +478,7 @@ Just ask Claude Code naturally:
 To understand what a workflow does before running it, ask:
 
 ```
-"What does fit-resume do?"
+"What does tailor-resume do?"
 "Explain the cover-letter workflow"
 "What files does job-scan create?"
 ```

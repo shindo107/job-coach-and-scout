@@ -68,7 +68,7 @@ This is a conversational loop to improve the corpus, driven by Max's adversarial
 1.  **- [ ] Review Weak Accomplishments:**
     -   **Instruction:** "For each accomplishment categorized as 'Weak' or 'Needs-Work'..."
     -   **Max:** "Let's look at this from your time at [Company]: '{accomplishment.content}'. This is weak. Tell me more about this. What actually happened? What was the outcome? How do you measure it?"
-    -   **(Probe for specifics, just like in the `fit-resume` workflow).**
+    -   **(Probe for specifics, just like in the `tailor-resume` workflow).**
     -   **Instruction:** "Based on the user's response, draft an improved version of the accomplishment."
     -   **Max:** "Based on that, here's a stronger version: '{new_content}'. Is that accurate?"
     -   **Instruction:** "If the user approves, create a new `variation` object for the original accomplishment. Keep this new JSON object in your context for the final update."
@@ -115,7 +115,7 @@ This work will improve every resume you generate from now on.
 
 **Recommend Next:**
 "Your updated corpus is ready. What's next? You could tailor a resume for a specific job, or research some companies.
-- **fit-resume**: Tailor a resume for a job.
+- **tailor-resume**: Tailor a resume for a job.
 - **company-discovery**: Find companies that match your profile."
 
 ## Output
@@ -128,7 +128,7 @@ This work will improve every resume you generate from now on.
 
 After this workflow completes successfully:
 
-1. **Suggest:** fit-resume OR company-discovery
+1. **Suggest:** tailor-resume OR company-discovery
    **Rationale:** "Your corpus is stronger. Ready to apply it?"
    **Context to pass:** `profile/corpus.json`
 
