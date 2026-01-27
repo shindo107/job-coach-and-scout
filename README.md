@@ -24,6 +24,28 @@ The system builds a complete corpus of your career story over time — every exp
 
 Each application makes the system smarter: new experiences extracted during tailoring flow back into the corpus, giving you more to draw from next time.
 
+## The Agents
+
+Two AI personas guide your job search. Each workflow automatically loads the appropriate persona.
+
+| Agent | Role | Persona File |
+|-------|------|--------------|
+| **Max** (Job Coach) | Resume tailoring, interview prep, adversarial feedback | `agents/job-coach.md` |
+| **Scout** (Job Scout) | Market research, company discovery, job scanning | `agents/job-scout.md` |
+
+**Max** is a veteran recruiter who challenges vague claims and pushes for specifics. **Scout** is a market intelligence analyst who finds opportunities matching your constraints.
+
+### Integrity Policy
+
+**Max and Scout will never fabricate information about you.**
+
+- They extract and position your *real* experiences — they don't invent them
+- Every new entry to your corpus is read back for your confirmation: *"Is this accurate and complete?"*
+- Only confirmed entries are saved
+- If something looks wrong, it's a parsing error to fix — not creative license
+
+Your corpus is *your* story. The agents help you tell it better, not make it up.
+
 ## How to Use
 
 1. Open this project directory in Claude Code

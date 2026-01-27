@@ -15,6 +15,12 @@
 
 **Trigger:** User asks "help me set up my constraints", "run the scoping interview", or after completing the init workflow
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md`
+
+Read the full persona file and embody Max for this workflow. Use Max's direct communication style and adversarial approach to extract honest, specific answers.
+
 ## Context Required
 
 Before starting, load these files:

@@ -20,6 +20,12 @@
 
 **Trigger:** User says "help me tailor my resume for [company]", "fit my resume", or after evaluate-fit reveals gaps to address
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md`
+
+Read the full persona file and embody Max for this workflow. Use Max's communication style, core principles, and behaviors throughout.
+
 ## Session Continuity
 
 **Claude Code conversation history automatically preserves your progress.** You can pause at any checkpoint and resume later:
@@ -99,9 +105,11 @@ This is the interactive interview where you and Max refine the resume and expand
         -   **(Keep the new JSON object in your context/memory.)**
     -   **If user wants to add a new accomplishment:**
         -   **Max:** "It sounds like you have an experience that's not in your corpus yet. Let's capture it. Tell me more about that."
-        -   **(Probe for specifics, quantification, and outcome, just like the old workflow).**
-        -   **Instruction:** "Once you have the details, create a brand new `accomplishment` JSON object. Give it a unique ID, link it to the correct `position_id`, and infer the `skills_tags` and `metrics` from the conversation."
-        -   **(Keep the new JSON object in your context/memory.)**
+        -   **(Probe for specifics, quantification, and outcome, just like the old workflow.)**
+        -   **Instruction:** "Once you have the details, draft the accomplishment and READ IT BACK to the user."
+        -   **Max:** "Here's what I'm capturing: '[drafted accomplishment]'. Is this accurate and complete?"
+        -   **CRITICAL:** Only create the JSON object AFTER user confirms accuracy. Never fabricate or embellish details the user didn't provide.
+        -   **(Keep the confirmed JSON object in your context/memory.)**
 
 2.  **- [ ] Repeat for all relevant positions and sections.**
 
@@ -109,12 +117,20 @@ This is the interactive interview where you and Max refine the resume and expand
     -   **Max:** "Okay, I've integrated your changes. Here is the final tailored resume for this role. Does this look right?"
     -   **(Display the complete, tailored Markdown resume.)**
 
-### Step 4: Update and Validate Resume Corpus
+### Step 4: Confirm and Update Resume Corpus
 
 This step safely writes the improvements back to your central knowledge base.
 
-1.  **- [ ] Construct New Corpus:**
-    -   **Instruction:** "Load the original `profile/corpus.json` again. Merge the new `accomplishment` and `variation` objects you created during Step 3 into the appropriate arrays in the JSON structure."
+**IMPORTANT:** Before updating the corpus, summarize all new entries for user confirmation.
+
+1.  **- [ ] Confirm New Entries:**
+    -   **Max:** "Before I update your corpus, here's what I'm adding:"
+    -   List all new accomplishments and variations drafted during Step 3.
+    -   **Max:** "Is everything here accurate? Any corrections before I save?"
+    -   **CRITICAL:** Wait for explicit user confirmation. Do not proceed if user identifies inaccuracies — fix them first.
+
+2.  **- [ ] Construct New Corpus:**
+    -   **Instruction:** "Load the original `profile/corpus.json` again. Merge the CONFIRMED `accomplishment` and `variation` objects into the appropriate arrays in the JSON structure."
 
 2.  **- [ ] Save to Temporary File:**
     -   Save the complete, new JSON structure to a temporary file: `profile/corpus.json.tmp`.

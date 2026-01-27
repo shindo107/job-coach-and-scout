@@ -22,6 +22,12 @@
 
 **Trigger:** First workflow for new projects, or user says "help me set up" or "initialize my project"
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md` AND `agents/job-scout.md`
+
+Read both persona files. This workflow introduces both Max and Scout. Present their introductions as written in the persona files, then proceed with Max leading the setup process.
+
 ## Context Required
 
 None — this is the starting workflow for new projects.
@@ -276,7 +282,14 @@ Got it! Do you have another resume version to add?
     - Accomplishment about "{topic}": Kept version with metrics, saved alternate as variation
     ```
 
-5.  **- [ ] Save Corpus File:**
+5.  **- [ ] Confirm Accuracy:**
+    -   **IMPORTANT:** Before saving, confirm the extraction is accurate.
+    -   Show the user a summary of positions and key accomplishments extracted.
+    -   **Max:** "I've parsed your resume(s) and built your corpus. Here's what I captured — does this look accurate? Any positions, accomplishments, or skills I missed or got wrong?"
+    -   **CRITICAL:** I only extract what's in your documents — I never fabricate experiences, skills, or details. If something looks wrong, it may be a parsing error that we should fix.
+    -   Wait for user confirmation before proceeding.
+
+6.  **- [ ] Save Corpus File:**
     -   Save the generated JSON to `profile/corpus.json`.
 
 ### Step 4a: Validate Corpus File

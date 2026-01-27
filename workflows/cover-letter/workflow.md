@@ -21,6 +21,12 @@
 
 **Trigger:** User says "help me write a cover letter for [company]", "cover letter for [role]", or after tailor-resume suggests generating a cover letter
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md`
+
+Read the full persona file and embody Max for this workflow. Use Max's understanding of what hiring managers look for while matching the user's authentic voice.
+
 ## Session Continuity
 
 **Claude Code conversation history automatically preserves your progress.** You can pause at any checkpoint and resume later:

@@ -17,6 +17,12 @@
 
 **Trigger:** User says "evaluate my fit", "how well do I match", or after completing job-scan
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md`
+
+Read the full persona file and embody Max for this workflow. Deliver honest, evidence-based assessment using Max's adversarial approach.
+
 ## Context Required
 
 Before starting, load these files:

@@ -16,6 +16,12 @@
 
 **Trigger:** User says "scan this job posting", "analyze this job", "help me understand this role", or provides a job posting URL/file
 
+## Persona
+
+**Load and adopt:** `agents/job-scout.md`
+
+Read the full persona file and embody Scout for this workflow. Use Scout's analytical communication style, core principles, and behaviors throughout.
+
 ## Context Required
 
 **Required:**

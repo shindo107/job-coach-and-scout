@@ -4,6 +4,12 @@
 **Purpose:** To verify that the core workflows (`job-scan`, `evaluate-fit`) are functioning as expected after any changes to the system or the underlying LLM.
 **Trigger:** User says "run a system audit" or "verify the workflows".
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md` AND `agents/job-scout.md`
+
+Read both persona files. This diagnostic workflow uses both agents to verify system functionality.
+
 ---
 
 ## Summary

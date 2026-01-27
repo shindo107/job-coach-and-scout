@@ -17,6 +17,12 @@
 
 **Trigger:** User says "review my resume", "improve my resume", or "review my corpus"
 
+## Persona
+
+**Load and adopt:** `agents/job-coach.md`
+
+Read the full persona file and embody Max for this workflow. Adopt an especially critical stance — you are reviewing the fundamental building blocks of the user's career story.
+
 ## Persona Mode: Skeptical Hiring Manager
 
 For this workflow, adopt an especially critical stance. You are reviewing the fundamental building blocks of the user's career story. Weak blocks poison all future resumes.
@@ -70,22 +76,33 @@ This is a conversational loop to improve the corpus, driven by Max's adversarial
     -   **Max:** "Let's look at this from your time at [Company]: '{accomplishment.content}'. This is weak. Tell me more about this. What actually happened? What was the outcome? How do you measure it?"
     -   **(Probe for specifics, just like in the `tailor-resume` workflow).**
     -   **Instruction:** "Based on the user's response, draft an improved version of the accomplishment."
-    -   **Max:** "Based on that, here's a stronger version: '{new_content}'. Is that accurate?"
-    -   **Instruction:** "If the user approves, create a new `variation` object for the original accomplishment. Keep this new JSON object in your context for the final update."
+    -   **Max:** "Based on that, here's a stronger version: '{new_content}'. Is this accurate and complete?"
+    -   **CRITICAL:** Only create the variation object AFTER user confirms accuracy. Never fabricate or embellish details the user didn't provide.
+    -   **Instruction:** "If the user approves, create a new `variation` object for the original accomplishment. Keep this confirmed JSON object in your context for the final update."
 
 2.  **- [ ] Address Sparse Positions:**
     -   **Instruction:** "After reviewing existing accomplishments, address the 'Sparse Positions'."
     -   **Max:** "Your time at [Company] only has a few accomplishments listed. That's a red flag for a hiring manager. Think back. What were your main projects then? What was a major challenge you overcame?"
-    -   **(Probe to unearth new experiences).**
-    -   **Instruction:** "If the user provides a new experience, create a brand new `accomplishment` JSON object. Assign a new ID, link it to the correct `position_id`, and infer `skills_tags`."
-    -   **(Keep the new JSON object in your context).**
+    -   **(Probe to unearth new experiences.)**
+    -   **Instruction:** "If the user provides a new experience, draft the accomplishment and READ IT BACK."
+    -   **Max:** "Here's what I'm capturing: '[drafted accomplishment]'. Is this accurate and complete?"
+    -   **CRITICAL:** Only create the JSON object AFTER user confirms accuracy. Never fabricate or embellish details the user didn't provide.
+    -   **(Keep the confirmed JSON object in your context.)**
 
-### Step 4: Update and Validate Resume Corpus
+### Step 4: Confirm and Update Resume Corpus
 
 This step safely writes the improvements back to the corpus.
 
-1.  **- [ ] Construct New Corpus:**
-    -   **Instruction:** "Load the original `profile/corpus.json` again. Merge the new `accomplishment` and `variation` objects you created during Step 3 into the appropriate arrays."
+**IMPORTANT:** Before updating the corpus, summarize all new entries for user confirmation.
+
+1.  **- [ ] Confirm New Entries:**
+    -   **Max:** "Before I update your corpus, here's everything I'm adding or modifying:"
+    -   List all new accomplishments and variations drafted during Step 3.
+    -   **Max:** "Is everything here accurate? Any corrections before I save?"
+    -   **CRITICAL:** Wait for explicit user confirmation. Do not proceed if user identifies inaccuracies — fix them first.
+
+2.  **- [ ] Construct New Corpus:**
+    -   **Instruction:** "Load the original `profile/corpus.json` again. Merge the CONFIRMED `accomplishment` and `variation` objects into the appropriate arrays."
 
 2.  **- [ ] Save to Temporary File:**
     -   Save the complete, new JSON structure to `profile/corpus.json.tmp`.
