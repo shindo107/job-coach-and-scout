@@ -96,11 +96,17 @@ Load a persona for freeform conversation without running a specific workflow.
 | `/corpus-review` | Max | Strategic review of corpus against market demand | Updated `profile/corpus.json` |
 | `/linkedin-review` | Max | Optimize LinkedIn profile for recruiters | `profile/linkedin.md` |
 
-**job-scan** extracts MUST-HAVE and NICE-TO-HAVE requirements, calculates fit score, and updates company profiles with tracked openings.
+**job-scan** extracts MUST-HAVE and NICE-TO-HAVE requirements, calculates fit score, detects duplicates, and:
+- Updates `market_skills.json` with skill demand data (with your confirmation)
+- Updates company profiles with tracked openings (if company was profiled)
+- Supports re-validation to detect posting changes over time
 
 **tailor-resume** requires a starting resume to modify (not generate from scratch). It applies corpus content, conducts gap-closing interviews, and outputs both Markdown and PDF.
 
-**corpus-review** analyzes your accomplishments against `research/market_skills.json` to identify high-demand skill gaps and strengthen weak areas.
+**corpus-review** uses market intelligence from all your job scans to identify strategic gaps:
+- Analyzes your accomplishments against `research/market_skills.json`
+- Prioritizes high-demand skills you lack evidence for
+- Conducts targeted interviews to close gaps with real experiences
 
 **linkedin-review** crafts a compelling profile with keyword-rich headline, narrative About section, and optimized skills for search visibility.
 
@@ -121,7 +127,12 @@ Load a persona for freeform conversation without running a specific workflow.
 
 **industry-research** analyzes where your skills are most valued and hiring trends are strongest. Produces Tier 1/2/3 rankings.
 
-**company-discovery** evaluates companies against your constraints, ranks by fit and opportunity signals, and generates optimized job search queries.
+**company-discovery** creates detailed company profiles with:
+- Fit scoring against your constraints
+- Hiring signals (funding, growth, leadership changes)
+- Tech stack and remote policy research
+- **Tracked Openings section** that auto-populates when you `/job-scan` postings from that company
+- Optimized job search queries for LinkedIn and other platforms
 
 ### System & Maintenance
 
@@ -225,6 +236,74 @@ job-coach-and-scout/
         └── {industry}/
             ├── index.md         # Industry company rankings
             └── {company}.md     # Individual company profiles
+```
+
+## Market Intelligence System
+
+The system builds market intelligence over time as you analyze job postings and research companies.
+
+### Market Skills Database
+
+Every time you run `/job-scan`, the workflow extracts technical skills and (with your confirmation) adds them to `research/market_skills.json`:
+
+```json
+{
+  "Python": { "count": 15, "must_have_count": 10, "nice_to_have_count": 5 },
+  "Kubernetes": { "count": 8, "must_have_count": 8, "nice_to_have_count": 0 },
+  "Go": { "count": 7, "must_have_count": 5, "nice_to_have_count": 2 }
+}
+```
+
+**How it's used:**
+- `/corpus-review` analyzes your accomplishments against this data to identify strategic gaps
+- High-demand skills you lack evidence for become priority targets for gap-closing interviews
+- The more jobs you scan, the more accurate your market picture becomes
+
+### Tracked Openings Per Company
+
+When you run `/company-discovery`, each company profile includes a **Tracked Openings** section:
+
+```markdown
+## Tracked Openings
+| Role | Fit Score | Date Scanned | Analysis |
+|------|-----------|--------------|----------|
+| Staff Engineer | 78% | 2026-01-15 | [View](../../openings/stripe-staff-engineer.md) |
+| Platform Lead | 65% | 2026-01-20 | [View](../../openings/stripe-platform-lead.md) |
+```
+
+**Cross-workflow integration:**
+1. `/company-discovery` creates company profiles in `research/companies/{industry}/`
+2. `/job-scan` automatically finds matching company profiles
+3. Each scanned job is added to that company's Tracked Openings table
+4. You get a per-company view of all opportunities you've analyzed
+
+### Duplicate Detection & Re-validation
+
+`/job-scan` intelligently detects when you're scanning a previously analyzed posting:
+
+1. **Exact URL match** - finds the existing analysis immediately
+2. **Fuzzy matching** - detects same company + similar role (handles "Sr." vs "Senior", etc.)
+3. **Re-validation flow** - compares new posting against stored requirements:
+   - Added requirements
+   - Removed requirements
+   - Priority changes (NICE-TO-HAVE → MUST-HAVE)
+   - Wording updates ("3+ years" → "5+ years")
+
+This prevents duplicate files and lets you track how postings evolve over time.
+
+### Data Flow
+
+```
+/job-scan ─────┬──→ research/openings/{company}-{role}.md
+               │
+               ├──→ research/market_skills.json (skill counts updated)
+               │
+               └──→ research/companies/{industry}/{company}.md
+                    (Tracked Openings section updated)
+
+/corpus-review ←── research/market_skills.json
+               │
+               └──→ profile/corpus.json (strategic gaps closed)
 ```
 
 ## Data Model
