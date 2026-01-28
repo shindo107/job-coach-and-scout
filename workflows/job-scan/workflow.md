@@ -74,13 +74,32 @@ Would you like to:
 
 ### Step 2b: Intelligent Duplicate Detection
 
-**Instruction:** Before proceeding with full analysis, check if this job has already been scanned to avoid duplicate entries and wasted effort.
+**Instruction:** Before proceeding with full analysis, check if this job has already been scanned to avoid duplicate entries and wasted effort. Use a two-phase approach: exact URL match first, then fuzzy matching.
 
-**2b-i. Scan Existing Openings:**
+**2b-i. Exact URL Search (if source is a URL):**
+- **Instruction:** If the job posting was provided via URL, search for that exact URL in existing opening files.
+- **Instruction:** Use Grep to search file contents: `grep -l "{exact-url}" research/openings/*.md`
+- **Instruction:** If a match is found:
+  ```
+  ✓ Found exact URL match in: `research/openings/{filename}`
+
+  This job posting has already been scanned.
+  ```
+  - Read the existing file and extract: date scanned, fit score, and verdict.
+  - Present options:
+    1. **Re-validate** — Check if the posting has changed since last scan
+    2. **View existing analysis** — Open the file without re-scanning
+    3. **Cancel** — Stop here
+  - If user chooses "Re-validate", proceed to **2b-v. Re-validation Flow**.
+  - If user chooses "View existing" or "Cancel", skip to Step 7 (summary only) or end.
+- **Instruction:** If no URL match is found, proceed to **2b-ii**.
+
+**2b-ii. Scan Existing Openings (for fuzzy matching):**
 - **Instruction:** List all files in `research/openings/` using Glob pattern `research/openings/*.md`.
 - **Instruction:** If the directory is empty, skip to Step 3.
 
-**2b-ii. Fuzzy Match Detection:**
+**2b-iii. Fuzzy Match Detection:**
+- **Instruction:** Only perform this step if the exact URL search (2b-i) did not find a match.
 - **Instruction:** For each existing file, extract the company and role from the filename (format: `{company}-{role}.md`).
 - **Instruction:** Compare against the current job posting using these matching criteria:
   - **Company match:** Case-insensitive comparison, ignoring common suffixes (Inc, Corp, LLC, Ltd). Also check for common abbreviations (e.g., "IBM" vs "International Business Machines").
@@ -93,8 +112,8 @@ Would you like to:
     - "Full Stack" / "Fullstack" / "Full-Stack"
 - **Instruction:** A potential duplicate exists if the company matches AND the role is semantically similar.
 
-**2b-iii. If Potential Duplicate Found:**
-- **Instruction:** Read the existing file and extract key details: date scanned, source URL, and the Fit Verdict.
+**2b-iv. If Potential Fuzzy Match Found:**
+- **Instruction:** Read the existing file and extract key details: date scanned, source URL, and the Fit Score/Verdict.
 - **Instruction:** Present the finding to the user:
   ```
   📋 I found an existing analysis that may be for this same role:
@@ -102,7 +121,7 @@ Would you like to:
   **Existing:** `research/openings/{existing-filename}`
   - Scanned: {date}
   - Source: {original URL or source}
-  - Verdict: {fit verdict}
+  - Fit Score: {X}% ({verdict})
 
   **Current posting:**
   - Company: {company}
@@ -116,7 +135,7 @@ Would you like to:
   2. **No, this is a different role** — Proceed to create a new analysis (may prompt for a disambiguated filename like `{company}-{role}-remote.md` or `{company}-{role}-v2.md`).
   3. **Skip** — Cancel the scan entirely.
 
-**2b-iv. Re-validation Flow (if user chooses option 1):**
+**2b-v. Re-validation Flow (if user chooses re-validate):**
 - **Instruction:** This flow updates an existing analysis rather than creating from scratch.
 - **Instruction:** Parse the new posting content and compare against the stored requirements:
   - Identify **added requirements** (in new but not in old)
@@ -153,8 +172,8 @@ Would you like to:
   - Ask if the user wants to re-run the fit assessment anyway (useful if their corpus has changed).
 - **Instruction:** After re-validation, skip to Step 6 (Update Market Skills) and Step 7 (Summary).
 
-**2b-v. If No Duplicates Found:**
-- **Instruction:** Proceed to Step 3 for full analysis.
+**2b-vi. If No Duplicates Found:**
+- **Instruction:** If neither the exact URL search (2b-i) nor the fuzzy match (2b-iii) found duplicates, proceed to Step 3 for full analysis.
 
 ### Step 3: Parse Requirements
 
