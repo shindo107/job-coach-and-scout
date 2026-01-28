@@ -46,59 +46,90 @@ Two AI personas guide your job search. Each workflow automatically loads the app
 
 Your corpus is *your* story. The agents help you tell it better, not make it up.
 
-## How to Use
+## Quick Reference
 
-1. Open this project directory in Claude Code
-2. Ask Claude Code to run a workflow using natural language
+| Command | What it does |
+|---------|--------------|
+| `/init` | Set up project, import resume(s), create corpus |
+| `/scoping-interview` | Capture salary, location, role preferences |
+| `/job-scan [url]` | Parse job posting into requirements |
+| `/tailor-resume [company]` | Modify resume for specific job |
+| `/cover-letter [company]` | Generate voice-matched cover letter |
+| `/corpus-review` | Strategic review against market data |
+| `/linkedin-review` | Optimize LinkedIn profile |
+| `/industry-research` | Tier industries by fit |
+| `/company-discovery [industry]` | Find and rank target companies |
+| `/job-coach` | Load Max for resume/interview advice |
+| `/job-scout` | Load Scout for market research |
+| `/audit` | Test core workflows with sample data |
 
-**Example invocations:**
+## Available Skills
 
-| What you say | What happens |
-|--------------|--------------|
-| "Help me get started" | Runs the init workflow |
-| "Run the scoping interview" | Captures your job search constraints |
-| "Scan this job posting" | Parses and evaluates a job posting |
-| "Tailor my resume for this job" | Interview-driven resume tailoring |
-| "Review my resume" | Adversarial feedback on your master resume |
-| "Write a cover letter" | Voice-matched cover letter generation |
-| "Research fintech companies" | Market intelligence and company discovery |
+### Agent Personas
 
-## Available Workflows
+Load a persona for freeform conversation without running a specific workflow.
+
+| Skill | Agent | Purpose |
+|-------|-------|---------|
+| `/job-coach` | Max | Resume advice, interview prep, adversarial feedback on career positioning |
+| `/job-scout` | Scout | Market research, company evaluation, opportunity discovery |
 
 ### Setup & Onboarding
 
-| Workflow | Purpose | Inputs | Outputs |
-|----------|---------|--------|---------|
-| **init** | Parse resumes into structured corpus | Your resume(s) — file, URL, or pasted | `profile/corpus.json` |
-| **scoping-interview** | Capture job search preferences | Conversational Q&A | `profile/constraints.yaml` |
+| Skill | Agent | Purpose | Outputs |
+|-------|-------|---------|---------|
+| `/init` | Both | Import resume(s), create structured corpus, set up directories | `profile/corpus.json`, `profile/voice_profile.json`, `profile/resume_template.yaml` |
+| `/scoping-interview` | Max | 10-15 question interview about job search preferences | `profile/constraints.yaml` |
+
+**init** creates your Resume Corpus — a structured JSON database of all your experiences, accomplishments, and skills. It also:
+- Analyzes PDF resume layout to create a template for PDF generation
+- Analyzes writing samples to create a voice profile for authentic content generation
+
+**scoping-interview** captures your constraints: salary requirements, location preferences, role targeting, and dealbreakers.
 
 ### Resume Preparation
 
-| Workflow | Purpose | Inputs | Outputs |
-|----------|---------|--------|---------|
-| **job-scan** | Parse job posting into requirements | Job posting (URL, file, or pasted) | `research/openings/{company}-{role}.md` |
-| **evaluate-fit** | Score alignment with job requirements | `corpus.json` + job posting | Display only (no file) |
-| **tailor-resume** | Tailor resume for specific job | `corpus.json` + job posting | `applications/resumes/{company}-{role}.md` |
-| **resume-review** | Adversarial review of corpus | `corpus.json` | Updated `corpus.json` |
+| Skill | Agent | Purpose | Outputs |
+|-------|-------|---------|---------|
+| `/job-scan` | Scout | Parse job posting into structured requirements | `research/openings/{company}-{role}.md` |
+| `/tailor-resume` | Max | Modify existing resume for specific job | `applications/resumes/{company}-{role}.md`, `.pdf` |
+| `/corpus-review` | Max | Strategic review of corpus against market demand | Updated `profile/corpus.json` |
+| `/linkedin-review` | Max | Optimize LinkedIn profile for recruiters | `profile/linkedin.md` |
+
+**job-scan** extracts MUST-HAVE and NICE-TO-HAVE requirements, calculates fit score, and updates company profiles with tracked openings.
+
+**tailor-resume** requires a starting resume to modify (not generate from scratch). It applies corpus content, conducts gap-closing interviews, and outputs both Markdown and PDF.
+
+**corpus-review** analyzes your accomplishments against `research/market_skills.json` to identify high-demand skill gaps and strengthen weak areas.
+
+**linkedin-review** crafts a compelling profile with keyword-rich headline, narrative About section, and optimized skills for search visibility.
 
 ### Application Materials
 
-| Workflow | Purpose | Inputs | Outputs |
-|----------|---------|--------|---------|
-| **cover-letter** | Voice-matched cover letter | `corpus.json` + tailored resume + writing samples | `applications/cover_letters/{company}-{role}.md` |
+| Skill | Agent | Purpose | Outputs |
+|-------|-------|---------|---------|
+| `/cover-letter` | Max | Voice-matched cover letter | `applications/cover_letters/{company}-{role}.md` |
+
+**cover-letter** uses your voice profile (from writing samples) to generate authentic cover letters. Includes iterative refinement based on your feedback.
 
 ### Research & Discovery
 
-| Workflow | Purpose | Inputs | Outputs |
-|----------|---------|--------|---------|
-| **industry-research** | Analyze industries by fit | `corpus.json` + `constraints.yaml` | `research/industries.md` |
-| **company-discovery** | Find and rank target companies | `corpus.json` + `constraints.yaml` + industry | `research/companies/{industry}/*.md` |
+| Skill | Agent | Purpose | Outputs |
+|-------|-------|---------|---------|
+| `/industry-research` | Scout | Tier industries by fit with your profile | `research/industries.md` |
+| `/company-discovery` | Scout | Find and rank companies in target industry | `research/companies/{industry}/*.md` |
+
+**industry-research** analyzes where your skills are most valued and hiring trends are strongest. Produces Tier 1/2/3 rankings.
+
+**company-discovery** evaluates companies against your constraints, ranks by fit and opportunity signals, and generates optimized job search queries.
 
 ### System & Maintenance
 
-| Workflow | Purpose | Inputs | Outputs |
-|----------|---------|--------|---------|
-| **audit** | Verify core workflows function correctly | None | Audit report (display only) |
+| Skill | Agent | Purpose | Outputs |
+|-------|-------|---------|---------|
+| `/audit` | — | Verify core workflows function correctly | Diagnostic report |
+
+**audit** tests the `init` → `job-scan` → `tailor-resume` pipeline with sample data.
 
 ## Agent Personas
 
@@ -106,9 +137,32 @@ Your corpus is *your* story. The agents help you tell it better, not make it up.
 
 A veteran recruiter with 15+ years experience. Adversarial by default, Max challenges vague claims, probes for forgotten experiences, and ensures every resume bullet can survive "tell me more about that."
 
+**Communication style:** Direct, skeptical, no sugarcoating. Configurable via scoping-interview:
+- **Brutally honest** (default): Maximum challenge, minimum hand-holding
+- **Balanced**: Challenge with encouragement
+- **Supportive**: Gentler delivery, same standards
+
+**Core principles:**
+1. Never fabricate — your story must be true
+2. Brutal honesty over polite encouragement
+3. Every bullet must survive "tell me more about that"
+4. Story-backed claims only — vague is weak
+5. Quantify or cut
+6. Position, don't just describe
+
 ### Scout — Job Scout
 
 A strategic market intelligence analyst. Scout tracks hiring trends, evaluates companies, and surfaces opportunities that match your constraints.
+
+**Communication style:** Analytical, methodical, data-driven. Leads with findings, follows with reasoning.
+
+**Core principles:**
+1. Never fabricate — your story must be true
+2. Quality over quantity in company targeting
+3. Track hiring signals, not just job postings
+4. Fit assessment against your constraints
+5. Industry trends inform strategy
+6. Research compounds
 
 ## System Overview
 
@@ -117,7 +171,7 @@ A strategic market intelligence analyst. Scout tracks hiring trends, evaluates c
 The diagram above shows how workflows interact with your **Resume Corpus** (the central knowledge base) and **constraints.yaml** (your job search preferences):
 
 - **Setup Flow (1):** `init` imports your resumes and creates the corpus; `scoping-interview` captures your constraints
-- **Apply to Job Flow (2):** `job-scan` → `evaluate-fit` → `tailor-resume` → `cover-letter` → application ready
+- **Apply to Job Flow (2):** `job-scan` → `tailor-resume` → `cover-letter` → application ready
 - **Research Flow (3):** `industry-research` → `company-discovery` → `job-scan` to find opportunities
 
 Max (orange) handles resume tailoring and feedback. Scout (teal) handles market research and job discovery. The corpus grows smarter with each tailoring session as new accomplishments and variations are captured.
@@ -128,48 +182,100 @@ Max (orange) handles resume tailoring and feedback. Scout (teal) handles market 
 job-coach-and-scout/
 ├── README.md                    # This file
 ├── .gitignore                   # Git ignore patterns
+│
 ├── agents/                      # Agent persona definitions
-│   ├── job-coach.md
-│   └── job-scout.md
+│   ├── job-coach.md             # Max's persona, principles, behaviors
+│   └── job-scout.md             # Scout's persona, principles, behaviors
 │
-├── tools/                       # Utility scripts for validation
-│   ├── validate-json.sh        # Deterministic JSON validator
-│   └── validate-yaml.sh        # Deterministic YAML validator
+├── workflows/                   # Workflow definitions (executed by skills)
+│   ├── init/                    # Project initialization
+│   ├── scoping-interview/       # Preference capture
+│   ├── job-scan/                # Job posting analysis
+│   ├── tailor-resume/           # Resume tailoring
+│   ├── cover-letter/            # Cover letter generation
+│   ├── corpus-review/           # Strategic corpus review
+│   ├── linkedin-review/         # LinkedIn optimization
+│   ├── industry-research/       # Industry analysis
+│   ├── company-discovery/       # Company targeting
+│   └── audit/                   # System diagnostics
 │
-├── workflows/                   # Workflow definitions
-│   ├── init/                   # Project initialization
-│   ├── ...                     # Other workflows
+├── tools/                       # Utility scripts
+│   ├── validate-json.sh         # JSON validation
+│   ├── validate-yaml.sh         # YAML validation
+│   └── check-pdf-tools.sh       # PDF tool detection
 │
 ├── profile/                     # Your data (created by init)
-│   ├── corpus.json             # Your structured Resume Corpus
-│   ├── constraints.yaml        # Job search constraints
-│   └── writing_samples/        # Voice analysis samples
+│   ├── corpus.json              # Your structured Resume Corpus
+│   ├── voice_profile.json       # Your writing voice characteristics
+│   ├── resume_template.yaml     # PDF styling template
+│   ├── constraints.yaml         # Job search constraints
+│   ├── linkedin.md              # Optimized LinkedIn profile
+│   ├── imports/                 # Drop zone for source resumes
+│   └── writing_samples/         # Voice analysis samples
 │
 ├── applications/                # Generated outputs
-│   ├── resumes/                # Tailored resumes (in Markdown)
-│   └── cover_letters/          # Generated cover letters
+│   ├── resumes/                 # Tailored resumes (Markdown + PDF)
+│   └── cover_letters/           # Generated cover letters
 │
 └── research/                    # Market intelligence
-    ├── ...                     # Research files
+    ├── industries.md            # Industry tier analysis
+    ├── market_skills.json       # Aggregated skill demand data
+    ├── openings/                # Parsed job postings
+    └── companies/               # Company profiles by industry
+        └── {industry}/
+            ├── index.md         # Industry company rankings
+            └── {company}.md     # Individual company profiles
 ```
+
+## Data Model
+
+This project uses **flat JSON/YAML files** rather than a database. This is intentional:
+
+| File | Purpose | Format |
+|------|---------|--------|
+| `profile/corpus.json` | All your experiences, accomplishments, skills | JSON |
+| `profile/voice_profile.json` | Your writing voice characteristics | JSON |
+| `profile/resume_template.yaml` | PDF styling from your original resume | YAML |
+| `profile/constraints.yaml` | Job search preferences and dealbreakers | YAML |
+| `research/market_skills.json` | Aggregated skill demand from job scans | JSON |
+
+**Why flat files?**
+- AI-native: Claude reads/writes directly without database drivers
+- Human-readable: Inspect and edit any file manually
+- Git-friendly: All changes are diffable and version-controllable
+- Zero dependencies: No database to install or maintain
+- Portable: Copy the folder, everything moves with it
 
 ## Getting Started
 
 1. **Initialize your project:**
-   Ask Claude Code: "Help me set up my job search project"
+   ```
+   /init
+   ```
+   Or say: "Help me set up my job search project"
 
    The init workflow will:
-   - Introduce you to your agents, Max and Scout.
-   - Ask for your agreement before processing personal data.
-   - Parse your resume (from text or a file) into a structured **Resume Corpus** (`profile/corpus.json`). This becomes the central, queryable knowledge base of your entire career history.
-   - Set up the rest of the project directory structure.
+   - Introduce you to Max and Scout
+   - Ask for privacy agreement before processing personal data
+   - Parse your resume(s) into the structured Resume Corpus
+   - Analyze PDF layout for resume template (if PDF provided)
+   - Analyze writing samples for voice profile (if provided)
 
 2. **Complete the scoping interview:**
-   Ask Claude Code: "Run the scoping interview"
+   ```
+   /scoping-interview
+   ```
+   This captures salary, location, role preferences, and dealbreakers.
 
 3. **Start applying:**
-   - Provide a job posting and ask Claude Code to **tailor your resume**. The `tailor-resume` workflow will now query your corpus to assemble the best possible resume.
-   - Or ask for a **corpus review** to strengthen your data.
+   - Scan a job posting: `/job-scan [url]`
+   - Tailor your resume: `/tailor-resume [company]`
+   - Generate a cover letter: `/cover-letter [company]`
+
+4. **Or research first:**
+   - Analyze industries: `/industry-research`
+   - Discover companies: `/company-discovery [industry]`
+   - Then scan postings from target companies
 
 ## Privacy
 
@@ -181,9 +287,9 @@ job-coach-and-scout/
 - No telemetry, analytics, or external calls from this project
 - Data processed in Claude Code sessions is subject to Anthropic's data handling policies
 
-## Alignment Score Thresholds
+## Fit Score Thresholds
 
-The **evaluate-fit** and **tailor-resume** workflows use evidence-based thresholds derived from recruiting industry research:
+The **job-scan** and **tailor-resume** workflows use evidence-based thresholds:
 
 | Score | Verdict | Recommendation |
 |-------|---------|----------------|
@@ -197,18 +303,8 @@ The **evaluate-fit** and **tailor-resume** workflows use evidence-based threshol
 
 ### Research Sources
 
-- **80%+ threshold**: Candidates with 80%+ match receive 2-3x more interview callbacks ([Jobscan](https://www.jobscan.co/blog/what-jobscan-match-rate-should-i-aim-for/), [ERE](https://www.ere.net/articles/why-good-candidates-fail-beware-the-90-percent-job-fit))
+- **80%+ threshold**: Candidates with 80%+ match receive 2-3x more interview callbacks ([Jobscan](https://www.jobscan.co/blog/what-jobscan-match-rate-should-i-aim-for/))
 - **70%+ threshold**: Resumes at 70%+ reliably bypass ATS filters ([Parkes Career Services](https://www.parkescareerservices.com/post/decoding-ats-what-percentage-must-your-resume-match-to-get-noticed))
 - **60% threshold**: 60% qualified with a referral often beats 100% qualified with none ([InHerSight](https://www.inhersight.com/blog/insight-commentary/why-60-percent-qualified-is-enough))
 - **50% threshold**: TalentWorks found 50% match gets interviews nearly as often as 90%+ ([CNBC](https://www.cnbc.com/2018/12/12/matching-half-of-a-jobs-requirements-might-still-get-you-an-interview.html))
 - **Below 50%**: Sub-60% match rates see ~90% human reviewer rejection ([Jobscan](https://www.jobscan.co/blog/what-jobscan-match-rate-should-i-aim-for/))
-
-## File Formats
-
-| Data | Format | Location |
-|------|--------|----------|
-| Resume Corpus | JSON | `profile/corpus.json` |
-| Constraints | YAML | `profile/constraints.yaml` |
-| Tailored resumes | Markdown | `applications/resumes/{company}-{role}.md` |
-| Cover letters | Markdown | `applications/cover_letters/{company}-{role}.md` |
-| Research | Markdown | `research/` subdirectories |
