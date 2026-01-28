@@ -1,7 +1,6 @@
 ---
 name: init
 description: Initialize your job search project. Imports your resume(s), creates the Resume Corpus, and sets up directory structure.
-disable-model-invocation: true
 argument-hint: [resume-file-path]
 ---
 

@@ -2,22 +2,22 @@
 
 ## Summary
 
-**Purpose:** Parse a job posting into structured requirements, identify skill gaps, and update a central market skills database.
+**Purpose:** Parse a job posting into structured requirements, identify skill gaps, and update a central market skills database. Intelligently detects duplicate postings and re-validates existing analyses when the same role is scanned again.
 **Agent:** Job Scout
 **Reads:**
 - Job posting content (URL, file path, or pasted text)
 - `profile/corpus.json` — For skill gap analysis.
 - `profile/constraints.yaml` — For dealbreaker and preference checks.
 - `research/market_skills.json` — The central database of all skills seen in the market.
-**Creates:**
-- `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements.
+- `research/openings/*.md` — Existing analyses for duplicate detection.
+**Creates/Updates:**
+- `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements (created new or re-validated).
 - `research/market_skills.json` (updated) — Enriched with the skills from this job posting.
-**Approximate time:** 5-10 minutes
 **Prerequisites:** `corpus.json` and `constraints.yaml` are highly recommended for full functionality.
 
 ---
 
-**Trigger:** User says "scan this job posting", "analyze this job", or provides a job posting URL/file.
+**Trigger:** User says "scan this job posting", "analyze this job", "check if this posting changed", or provides a job posting URL/file. Also triggers on "re-scan" or "re-validate" requests for previously analyzed roles.
 
 ## Persona
 
@@ -72,6 +72,90 @@ Would you like to:
 - From the content, identify the company name, role title, location, and employment type.
 - Generate a standardized filename for the output, e.g., `stripe-staff-software-engineer.md`.
 
+### Step 2b: Intelligent Duplicate Detection
+
+**Instruction:** Before proceeding with full analysis, check if this job has already been scanned to avoid duplicate entries and wasted effort.
+
+**2b-i. Scan Existing Openings:**
+- **Instruction:** List all files in `research/openings/` using Glob pattern `research/openings/*.md`.
+- **Instruction:** If the directory is empty, skip to Step 3.
+
+**2b-ii. Fuzzy Match Detection:**
+- **Instruction:** For each existing file, extract the company and role from the filename (format: `{company}-{role}.md`).
+- **Instruction:** Compare against the current job posting using these matching criteria:
+  - **Company match:** Case-insensitive comparison, ignoring common suffixes (Inc, Corp, LLC, Ltd). Also check for common abbreviations (e.g., "IBM" vs "International Business Machines").
+  - **Role match:** Check for semantic similarity—treat these as equivalent:
+    - "Senior" / "Sr." / "Sr"
+    - "Staff" / "Principal" / "Lead" (similar seniority)
+    - "Software Engineer" / "Software Developer" / "SWE"
+    - "Frontend" / "Front-end" / "Front End"
+    - "Backend" / "Back-end" / "Back End"
+    - "Full Stack" / "Fullstack" / "Full-Stack"
+- **Instruction:** A potential duplicate exists if the company matches AND the role is semantically similar.
+
+**2b-iii. If Potential Duplicate Found:**
+- **Instruction:** Read the existing file and extract key details: date scanned, source URL, and the Fit Verdict.
+- **Instruction:** Present the finding to the user:
+  ```
+  📋 I found an existing analysis that may be for this same role:
+
+  **Existing:** `research/openings/{existing-filename}`
+  - Scanned: {date}
+  - Source: {original URL or source}
+  - Verdict: {fit verdict}
+
+  **Current posting:**
+  - Company: {company}
+  - Role: {role}
+  - Source: {current URL or source}
+
+  Is this the same job posting?
+  ```
+- **Instruction:** Offer these options:
+  1. **Yes, re-validate existing** — Compare the new posting against the stored analysis, update any changed requirements, and refresh the fit assessment.
+  2. **No, this is a different role** — Proceed to create a new analysis (may prompt for a disambiguated filename like `{company}-{role}-remote.md` or `{company}-{role}-v2.md`).
+  3. **Skip** — Cancel the scan entirely.
+
+**2b-iv. Re-validation Flow (if user chooses option 1):**
+- **Instruction:** This flow updates an existing analysis rather than creating from scratch.
+- **Instruction:** Parse the new posting content and compare against the stored requirements:
+  - Identify **added requirements** (in new but not in old)
+  - Identify **removed requirements** (in old but not in new)
+  - Identify **changed priority** (MUST-HAVE ↔ NICE-TO-HAVE)
+  - Identify **wording changes** (same requirement, different phrasing)
+- **Instruction:** Present a diff summary to the user:
+  ```
+  📊 Re-validation Results for {company} - {role}
+
+  **Changes detected:**
+  ➕ Added:
+    - {new requirement} (MUST-HAVE)
+  ➖ Removed:
+    - {old requirement that's no longer listed}
+  🔄 Priority Changed:
+    - "Python" upgraded from NICE-TO-HAVE → MUST-HAVE
+  📝 Wording Updated:
+    - "3+ years experience" → "5+ years experience"
+
+  **No changes:** {list of requirements that are identical}
+  ```
+- **Instruction:** If changes are detected:
+  - Update the stored file with the new requirements
+  - Update the "Date Scanned" to today
+  - Preserve the original source URL but add the new source as "Re-validated from: {new source}"
+  - Re-run the Corpus Skill Gap Analysis (Step 4a) with the updated requirements
+  - Re-run the Constraints Check (Step 4b) if requirements changed
+- **Instruction:** If no changes are detected:
+  ```
+  ✅ No changes detected. The existing analysis is still current.
+  Last scanned: {date} | Verdict: {fit verdict}
+  ```
+  - Ask if the user wants to re-run the fit assessment anyway (useful if their corpus has changed).
+- **Instruction:** After re-validation, skip to Step 6 (Update Market Skills) and Step 7 (Summary).
+
+**2b-v. If No Duplicates Found:**
+- **Instruction:** Proceed to Step 3 for full analysis.
+
 ### Step 3: Parse Requirements
 
 **Instruction:**
@@ -109,13 +193,13 @@ Would you like to:
 
 ### Step 5: Save Parsed Job File
 
-**5a. Check for Existing Files & Offer Diff:**
-- **Instruction:** Before saving, check for existing analysis files for this role in `research/openings/`.
-- **Instruction:** If a previous version is found, present the user with options, including a new **"Compare with new version"** option.
-- **If user chooses to compare:**
-    - **Instruction:** Perform a diff between the requirements of the old and new versions.
-    - **Instruction:** Summarize the key changes for the user. Example: "The new version has added 'AWS Certification' as a NICE-TO-HAVE and upgraded 'Python' from a NICE-TO-HAVE to a MUST-HAVE."
-    - **Instruction:** After showing the diff, ask the user again if they want to overwrite, create a new version, or cancel.
+**5a. Final Filename Confirmation:**
+- **Instruction:** If Step 2b already handled duplicate detection and re-validation, skip to 5b.
+- **Instruction:** If this is a new analysis, confirm the target filename: `research/openings/{company}-{role}.md`.
+- **Instruction:** If an exact filename collision exists (rare edge case—Step 2b should have caught this), offer:
+  1. Overwrite the existing file
+  2. Create a versioned file (`{company}-{role}-v2.md`)
+  3. Cancel
 
 **5b. Write the Output File:**
 - **Instruction:** Save the complete analysis to `research/openings/{filename}`.
@@ -150,11 +234,19 @@ Would you like to:
 
 **Instruction:**
 - Display a summary of the analysis, leading with the most critical information.
-- **Example:** "Job scan complete for {Role}. **🚨 I found 3 critical skill gaps** between the job's must-haves and your resume. The full analysis, including a dealbreaker check, is saved to `research/openings/{filename}`."
+- **For new scans:**
+  - **Example:** "Job scan complete for {Role}. **🚨 I found 3 critical skill gaps** between the job's must-haves and your resume. The full analysis, including a dealbreaker check, is saved to `research/openings/{filename}`."
+- **For re-validations:**
+  - **Example (with changes):** "Re-validation complete for {Role}. **The posting has changed**—2 new requirements added, 1 priority upgraded. Updated analysis saved. Your fit verdict changed from Good Fit → Potential Fit due to new skill gaps."
+  - **Example (no changes):** "Re-validation complete for {Role}. **No changes detected** since the last scan on {date}. Your existing analysis remains current."
 - **Instruction:** Suggest `tailor-resume` as the next logical step to address the identified gaps. Frame the suggestion around the gap analysis. "The next step is to run `tailor-resume` to address these gaps directly. Ready to start tailoring?"
 
 ## Output
 
-**Files created/updated:**
-- `research/openings/{company}-{role}.md` — Parsed job posting.
+**For new scans:**
+- `research/openings/{company}-{role}.md` — New parsed job posting with categorized requirements.
 - `research/market_skills.json` — Updated with skills from this posting.
+
+**For re-validations:**
+- `research/openings/{company}-{role}.md` — Updated with any changed requirements, new scan date, and refreshed fit assessment.
+- `research/market_skills.json` — Updated only if new skills were added to the posting.

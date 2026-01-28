@@ -1,7 +1,6 @@
 ---
 name: tailor-resume
 description: Tailor your resume for a specific job posting through interview-driven extraction. Creates a targeted resume and updates your corpus with new experiences.
-disable-model-invocation: true
 argument-hint: [company-name]
 ---
 
