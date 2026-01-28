@@ -15,6 +15,7 @@
 - `applications/cover_letters/` — Directory for cover letters
 - `research/companies/` — Directory for company profiles
 - `research/openings/` — Directory for job posting analyses
+- `research/market_skills.json` — Market intelligence database (empty seed)
 **Approximate time:** 5-10 minutes (interactive)
 **Prerequisites:** None — this is the starting workflow
 
@@ -115,7 +116,10 @@ First, I'll set up the required directories for your project.
    - `research/`
    - `research/companies/`
    - `research/openings/`
-2. Report what was created.
+2. Initialize `research/market_skills.json` if it doesn't exist:
+   - Create the file with an empty JSON object: `{}`
+   - This file will be populated by the `job-scan` workflow as you analyze job postings
+3. Report what was created.
 
 ### Step 4: Create Resume Corpus
 
@@ -356,6 +360,7 @@ The scoping interview is where we establish your job search constraints. This cr
 **Files created:**
 - `profile/corpus.json` (The user's structured resume knowledge base)
 - `profile/writing_samples/*` (imported samples, if any)
+- `research/market_skills.json` (empty seed for market intelligence)
 
 ## Recommend Next
 

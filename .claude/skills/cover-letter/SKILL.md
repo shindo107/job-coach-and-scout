@@ -1,7 +1,6 @@
 ---
 name: cover-letter
 description: Generate a voice-matched cover letter for a specific job. Analyzes your writing samples and creates a personalized letter that sounds like you.
-disable-model-invocation: true
 argument-hint: [company-name]
 ---
 

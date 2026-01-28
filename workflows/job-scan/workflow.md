@@ -2,63 +2,37 @@
 
 ## Summary
 
-**Purpose:** Parse a job posting into structured requirements for fit analysis and tailoring
+**Purpose:** Parse a job posting into structured requirements, identify skill gaps, and update a central market skills database.
 **Agent:** Job Scout
 **Reads:**
 - Job posting content (URL, file path, or pasted text)
-- `profile/constraints.yaml` — For quick fit assessment (optional)
+- `profile/corpus.json` — For skill gap analysis.
+- `profile/constraints.yaml` — For dealbreaker and preference checks.
+- `research/market_skills.json` — The central database of all skills seen in the market.
 **Creates:**
-- `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements
+- `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements.
+- `research/market_skills.json` (updated) — Enriched with the skills from this job posting.
 **Approximate time:** 5-10 minutes
-**Prerequisites:** None (constraints.yaml recommended for fit assessment)
+**Prerequisites:** `corpus.json` and `constraints.yaml` are highly recommended for full functionality.
 
 ---
 
-**Trigger:** User says "scan this job posting", "analyze this job", "help me understand this role", or provides a job posting URL/file
+**Trigger:** User says "scan this job posting", "analyze this job", or provides a job posting URL/file.
 
 ## Persona
 
-**Load and adopt:** `agents/job-scout.md`
-
-Read the full persona file and embody Scout for this workflow. Use Scout's analytical communication style, core principles, and behaviors throughout.
-
-## Context Required
-
-**Required:**
-- Job posting content (via URL, file path, or direct paste)
-
-**Optional:**
-- `profile/constraints.yaml` — Job search constraints for quick fit assessment
+**Load and adopt:** `agents/job-scout.md`. Embody Scout's analytical, data-driven approach.
 
 ## Steps
 
 ### Step 1: Obtain Job Posting Content
 
-**Determine input method:**
+**Instruction:** Determine the user's preferred input method and retrieve the job posting content.
 
-Ask the user how they want to provide the job posting:
-
-```
-I'll analyze this job posting for you. How would you like to provide it?
-
-1. **URL** — Paste the job posting URL and I'll fetch it
-2. **File** — Provide a file path to a saved posting
-3. **Paste** — Paste the job posting content directly
-
-Which method works best for you?
-```
-
-**If user already provided a URL or file path in their initial request:**
-Skip the prompt and proceed directly to the appropriate method below.
-
----
-
-**Method A: URL Input**
-
-1. Use WebFetch to retrieve the page content
-2. Extract the job posting text from the page
-3. Record the source URL for the output file
-4. Proceed to Step 2
+**If user provides a URL:**
+1. Use WebFetch to retrieve the page content.
+2. Extract the job posting text from the page.
+3. Record the source URL for the output file.
 
 **If WebFetch fails (network error, 404, paywall, authentication required):**
 ```
@@ -73,13 +47,9 @@ Would you like to:
 3. Paste the job posting content directly?
 ```
 
----
-
-**Method B: File Path Input**
-
-1. Use Read tool to load the file content
-2. Record the file path as the source
-3. Proceed to Step 2
+**If user provides a file path:**
+1. Use Read tool to load the file content.
+2. Record the file path as the source.
 
 **If file cannot be read:**
 ```
@@ -92,262 +62,99 @@ Would you like to:
 2. Paste the content directly?
 ```
 
----
-
-**Method C: Direct Paste**
-
-1. Accept the pasted content from the user
-2. Record source as "User provided (pasted)"
-3. Proceed to Step 2
+**If user pastes content directly:**
+1. Accept the pasted content from the user.
+2. Record source as "User provided (pasted)".
 
 ### Step 2: Extract Company and Role Information
 
-From the job posting, identify:
-
-1. **Company name** — The employer (not the job board)
-2. **Role title** — The exact job title
-3. **Location** — Where the role is based (or "Remote")
-4. **Employment type** — Full-time, contract, etc.
-
-**Generate output filename:**
-- Pattern: `{company}-{role}.md`
-- Lowercase, hyphens for spaces
-- Remove special characters
-- Example: "Stripe" + "Staff Software Engineer" → `stripe-staff-software-engineer.md`
+**Instruction:**
+- From the content, identify the company name, role title, location, and employment type.
+- Generate a standardized filename for the output, e.g., `stripe-staff-software-engineer.md`.
 
 ### Step 3: Parse Requirements
 
-Analyze the job posting and extract requirements into categories:
+**Instruction:**
+- Analyze the job posting and extract all requirements.
+- Categorize each requirement into: `Technical`, `Experience`, `Education & Certifications`, and `Soft Skills & Culture`.
+- Label each requirement as **MUST-HAVE** or **NICE-TO-HAVE** based on trigger words ("required", "preferred", etc.). If unclear, default to MUST-HAVE.
+- For each requirement, include the original quoted text and the rationale for the priority.
+- **Empowered Analysis:** If a requirement is notably vague ("synergy"), rare, or stringent ("PhD required"), add a `Note:` with your analytical commentary.
 
-**Technical Requirements:**
-- Programming languages, frameworks, tools
-- Specific technical skills mentioned
-- Years of experience with technologies
+### Step 4: Quick Fit Assessment
 
-**Experience Requirements:**
-- Total years of experience
-- Industry experience
-- Role-specific experience (e.g., "led teams", "shipped products")
-- Domain expertise
+**Instruction:** This is a multi-part assessment. Perform all parts if the necessary files are available.
 
-**Education & Certifications:**
-- Degree requirements (if any)
-- Certifications mentioned
-- "Or equivalent experience" noted if present
+**4a. Corpus Skill Gap Analysis (CRITICAL):**
+- **Instruction:** Compare the list of parsed **MUST-HAVE Technical Requirements** against the skills present in `profile/corpus.json`.
+- **Instruction:** If there are any MUST-HAVE skills from the job posting that are NOT in the user's corpus, this is a **Critical Gap**.
+- **Instruction:** The primary output of this step is a clear warning to the user.
+- **Example Output:**
+    ```
+    ### 🚨 Critical Skill Gaps Detected
+    This role lists the following as MUST-HAVE skills, but they are missing from your resume corpus:
+    - **Kubernetes**
+    - **Go**
+    - **Terraform**
 
-**Soft Skills & Culture:**
-- Communication, collaboration, leadership
-- Work style expectations
-- Company values alignment
+    Addressing these gaps in the `tailor-resume` workflow will be essential.
+    ```
+- If no gaps are found, state that explicitly: "✅ No critical skill gaps found between the job's must-have requirements and your corpus."
 
-**For each requirement extracted:**
-- Label as **MUST-HAVE** or **NICE-TO-HAVE**
-- Include the original text from the posting (quoted)
-- Include brief rationale explaining the categorization
+**4b. Constraints & Dealbreaker Check:**
+- **Instruction:** If `profile/constraints.yaml` exists, compare the posting's details (location, seniority, etc.) against the user's preferences.
+- **Instruction:** Explicitly check for any dealbreaker violations (e.g., role is in a city on the `location_dealbreakers` list).
+- **Instruction:** If a dealbreaker is found, present a strong warning and ask the user if they wish to proceed.
+- **Instruction:** Generate a summary verdict (e.g., Strong Fit, Potential Fit, Not Recommended).
 
-**Categorization Logic:**
-- Label as **MUST-HAVE** if posting uses: "must have", "required", "minimum", "essential", "need", "mandatory"
-- Label as **NICE-TO-HAVE** if posting uses: "preferred", "nice to have", "bonus", "ideally", "plus", "desired"
-- When unclear, default to **MUST-HAVE** and note: "Assumed — not explicitly stated"
+### Step 5: Save Parsed Job File
 
-### Step 4: Quick Fit Assessment (if constraints available)
+**5a. Check for Existing Files & Offer Diff:**
+- **Instruction:** Before saving, check for existing analysis files for this role in `research/openings/`.
+- **Instruction:** If a previous version is found, present the user with options, including a new **"Compare with new version"** option.
+- **If user chooses to compare:**
+    - **Instruction:** Perform a diff between the requirements of the old and new versions.
+    - **Instruction:** Summarize the key changes for the user. Example: "The new version has added 'AWS Certification' as a NICE-TO-HAVE and upgraded 'Python' from a NICE-TO-HAVE to a MUST-HAVE."
+    - **Instruction:** After showing the diff, ask the user again if they want to overwrite, create a new version, or cancel.
 
-**If `profile/constraints.yaml` exists:**
+**5b. Write the Output File:**
+- **Instruction:** Save the complete analysis to `research/openings/{filename}`.
+- **Instruction:** The file must include the new "Corpus Skill Gap Analysis" section at the top of the "Quick Fit Assessment".
 
-First, validate the constraints file:
-- If YAML is malformed or unreadable, note: "Could not parse constraints.yaml — skipping fit assessment. Run scoping-interview to regenerate."
-- If expected fields are missing, proceed with available fields and note which comparisons were skipped.
+### Step 6: Update Market Skills Database
 
-Compare the posting against user's constraints:
+**Instruction:** This step updates the central `research/market_skills.json` file to improve market intelligence over time.
 
-| Constraint | User Preference | Posting | Match |
-|------------|-----------------|---------|-------|
-| Remote | {from constraints} | {from posting} | ✅/⚠️/❌ |
-| Location | {from constraints} | {from posting} | ✅/⚠️/❌ |
-| Seniority | {from constraints} | {from posting} | ✅/⚠️/❌ |
-| Company Size | {from constraints} | {from posting} | ✅/⚠️/❌ |
-| Industry | {from constraints} | {from posting} | ✅/⚠️/❌ |
+**6a. Read the Market Skills DB:**
+- **Instruction:** Read the contents of `research/market_skills.json`. If the file doesn't exist, initialize an empty JSON object `{}`.
 
-**Quick verdict:**
-- **Strong fit** — Meets all non-negotiables, most preferences
-- **Potential fit** — Meets non-negotiables, some preference mismatches
-- **Weak fit** — Misses some non-negotiables or major preferences
-- **Not recommended** — Violates dealbreakers
+**6b. Update Skill Counts:**
+- **Instruction:** For each technical skill parsed from the current job posting:
+    - If the skill already exists in the database, increment its `count` and its `must_have_count` or `nice_to_have_count`.
+    - If the skill is new, add it to the database with an initial `count: 1`.
+- **Example Structure:**
+    ```json
+    {
+      "Python": { "count": 15, "must_have_count": 10, "nice_to_have_count": 5 },
+      "Go": { "count": 8, "must_have_count": 8, "nice_to_have_count": 0 },
+      "Chrony": { "count": 1, "must_have_count": 1, "nice_to_have_count": 0 }
+    }
+    ```
 
----
+**6c. Safe Write-Back:**
+- **Instruction:** Save the updated JSON object to a temporary file, `research/market_skills.json.tmp`.
+- **Instruction:** Validate the file using `cat research/market_skills.json.tmp | tools/validate-json.sh`.
+- **Instruction:** If valid, perform an atomic write (rename original to `.bak`, rename `.tmp` to original). If invalid, report the error and discard the changes to this file to prevent corruption.
 
-**Dealbreaker Check:**
+### Step 7: Summary and Next Steps
 
-Check these constraint fields for dealbreaker violations (field paths match scoping-interview output):
-- `location.dealbreakers` — Cities/regions user won't work in
-- `industries.avoid` — Industries user won't work in
-- `targeting.avoid_titles` — Job titles user won't accept
-- `targeting.avoid_companies` — Specific companies to avoid
-
-If a field doesn't exist in the user's constraints, skip that check silently.
-
-**If any dealbreaker is violated:**
-
-```
-⚠️ **DEALBREAKER CONFLICT DETECTED**
-
-The following conflicts with your stated dealbreakers:
-
-| Dealbreaker Type | Your Constraint | This Posting |
-|------------------|-----------------|--------------|
-| {type} | "{your value}" | "{posting value}" |
-
-This role is **not recommended** based on your constraints.
-
-Would you like to:
-1. Continue anyway (save analysis for reference)
-2. Skip this posting and find alternatives
-```
-
-**Wait for user confirmation before proceeding to Step 5 if dealbreakers are violated.**
-
----
-
-**If constraints not available:**
-Note: "Quick fit assessment skipped — run scoping-interview to establish your constraints for personalized fit analysis."
-
-### Step 5: Save Output File
-
-**Check for existing files:**
-
-Before saving, scan `research/openings/` for existing files matching this company/role.
-
-**Detection logic:**
-1. Look for exact match: `{company}-{role}.md`
-2. Look for versioned files: `{company}-{role}-v2.md`, `{company}-{role}-v3.md`, etc.
-3. Look for date-suffixed files: `{company}-{role}-2026-01-25.md`
-4. Look for revision patterns: `{company}-{role}-rev2.md`, `{company}-{role}-r2.md`
-
-**If any matching files found:**
-
-```
-I found existing analysis for {Company} - {Role}:
-
-| File | Modified | Notes |
-|------|----------|-------|
-| {filename} | {file modified date} | {original/v2/dated} |
-
-Which file should I update or replace? Or should I create a new version?
-
-1. **Overwrite {most recent file}** — Replace with this new scan
-2. **New version** — Save as {company}-{role}-v{next}.md
-3. **Custom filename** — Let me specify the filename
-4. **Cancel** — Keep existing and discard this scan
-```
-
-**If user chooses option 3 (custom):**
-```
-Enter the filename (will be saved to research/openings/):
-```
-Validate the filename follows conventions (lowercase, hyphens, .md extension).
-
-**Version number detection:**
-- Parse existing filenames for version indicators: `-v2`, `-v3`, `-rev2`, `-r2`
-- Extract dates from filenames: `-2026-01-25`
-- Use file modification dates as secondary signal
-- Suggest next version number based on highest found
-
-**If user chooses to cancel:** End workflow gracefully without saving.
-
----
-
-**Write the parsed posting to output file:**
-
-```markdown
-# {Company} - {Role}
-
-**Source:** {URL or file path or "User provided"}
-**Date Scanned:** {current date}
-**Location:** {location}
-**Employment Type:** {type}
-
-## Quick Fit Assessment
-
-{Quick fit table and verdict, or note about missing constraints}
-
-## Parsed Requirements
-
-### Technical Requirements
-
-| Requirement | Priority | Rationale | Original Text |
-|-------------|----------|-----------|---------------|
-| {skill} | MUST-HAVE/NICE-TO-HAVE | {trigger phrase or "Assumed"} | "{quoted text}" |
-
-### Experience Requirements
-
-| Requirement | Priority | Rationale | Original Text |
-|-------------|----------|-----------|---------------|
-| {experience} | MUST-HAVE/NICE-TO-HAVE | {trigger phrase or "Assumed"} | "{quoted text}" |
-
-### Education & Certifications
-
-| Requirement | Priority | Rationale | Original Text |
-|-------------|----------|-----------|---------------|
-| {education} | MUST-HAVE/NICE-TO-HAVE | {trigger phrase or "Assumed"} | "{quoted text}" |
-
-### Soft Skills & Culture
-
-| Requirement | Priority | Rationale | Original Text |
-|-------------|----------|-----------|---------------|
-| {skill} | MUST-HAVE/NICE-TO-HAVE | {trigger phrase or "Assumed"} | "{quoted text}" |
-
-## Original Posting
-
-{preserved original posting text}
-```
-
-**Confirm save:**
-"Saved job posting analysis to `research/openings/{filename}`."
-
-### Step 6: Summary and Next Steps
-
-**Display summary:**
-
-```
-Job Posting Analyzed: {Company} - {Role}
-
-Key Requirements:
-- {top 3-5 requirements summarized}
-
-Quick Fit: {verdict}
-
-Saved to: research/openings/{filename}
-```
-
-**Suggest next workflow based on fit:**
-
-- **Strong/Potential fit:** "Would you like me to evaluate your fit in detail? Run **evaluate-fit** for a comprehensive gap analysis."
-- **Weak fit:** "This role has some mismatches with your preferences. Want to explore it anyway, or should we look for better matches?"
-- **Not recommended:** "This role conflicts with your dealbreakers. Want me to explain why, or should we find alternatives?"
+**Instruction:**
+- Display a summary of the analysis, leading with the most critical information.
+- **Example:** "Job scan complete for {Role}. **🚨 I found 3 critical skill gaps** between the job's must-haves and your resume. The full analysis, including a dealbreaker check, is saved to `research/openings/{filename}`."
+- **Instruction:** Suggest `tailor-resume` as the next logical step to address the identified gaps. Frame the suggestion around the gap analysis. "The next step is to run `tailor-resume` to address these gaps directly. Ready to start tailoring?"
 
 ## Output
 
-Save the result to: `research/openings/{company}-{role}.md`
-
-**Files created:**
-- `research/openings/{company}-{role}.md` — Parsed job posting with requirements and fit assessment
-
-## Recommend Next
-
-After this workflow completes successfully:
-
-1. **Suggest:** evaluate-fit OR tailor-resume
-   **Rationale:** "Posting parsed. Want a quick fit check or ready to start tailoring?"
-   **Context to pass:** `research/openings/{company}-{role}.md` (parsed requirements), `profile/corpus.json`, `profile/constraints.yaml`
-
-2. Present the suggestion conversationally:
-   "I've parsed the job posting for {Company} - {Role}. Would you like to:
-   - **Evaluate your fit** — Get a detailed alignment score and gap analysis (read-only)
-   - **Start tailoring** — Jump straight into resume tailoring with interview-driven extraction
-
-   Which approach? [Evaluate fit/Start tailoring/Something else]"
-
-3. If user chooses evaluate-fit: Load `workflows/evaluate-fit/workflow.md` and execute
-4. If user chooses tailor-resume: Load `workflows/tailor-resume/workflow.md` and execute
-5. If user declines: Summarize what was accomplished and end gracefully
-6. If user requests different workflow: Honor their request
+**Files created/updated:**
+- `research/openings/{company}-{role}.md` — Parsed job posting.
+- `research/market_skills.json` — Updated with skills from this posting.

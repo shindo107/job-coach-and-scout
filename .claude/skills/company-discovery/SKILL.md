@@ -1,7 +1,6 @@
 ---
 name: company-discovery
 description: Discover and rank companies in a target industry. Evaluates fit against your constraints and generates optimized job search queries.
-disable-model-invocation: true
 argument-hint: [industry-name]
 ---
 

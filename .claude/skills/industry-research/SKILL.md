@@ -1,7 +1,6 @@
 ---
 name: industry-research
 description: Research and tier industries by fit with your profile. Identifies where your skills are most valued and hiring trends are strongest.
-disable-model-invocation: true
 argument-hint: [optional-industry-focus]
 ---
 

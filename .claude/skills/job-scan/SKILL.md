@@ -1,7 +1,6 @@
 ---
 name: job-scan
 description: Parse a job posting into structured requirements. Extracts must-haves, nice-to-haves, and company signals for fit analysis.
-disable-model-invocation: true
 argument-hint: [job-url-or-file]
 ---
 

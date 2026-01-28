@@ -1,20 +1,18 @@
 # System Audit
 
 **Agent:** Job Coach (Max) & Job Scout
-**Purpose:** To verify that the core workflows (`job-scan`, `evaluate-fit`) are functioning as expected after any changes to the system or the underlying LLM.
+**Purpose:** To verify that the core `init` -> `job-scan` -> `tailor-resume` pipeline is functioning as expected after any changes.
 **Trigger:** User says "run a system audit" or "verify the workflows".
 
 ## Persona
 
-**Load and adopt:** `agents/job-coach.md` AND `agents/job-scout.md`
-
-Read both persona files. This diagnostic workflow uses both agents to verify system functionality.
+**Load and adopt:** `agents/job-coach.md` AND `agents/job-scout.md`.
 
 ---
 
 ## Summary
 
-This workflow provides a consistent, repeatable way to test the core functionality of the Job Coach & Scout system. It uses a predefined sample resume and job description to run through the main pipeline and asks for confirmation that the output is correct.
+This workflow provides a consistent way to test the core functionality of the Job Coach & Scout system. It uses a predefined sample resume and job description to run through the main pipeline and asks for confirmation that the output is correct.
 
 **This is a read-only, diagnostic workflow.** It will create temporary files but will guide you to clean them up at the end.
 
@@ -26,66 +24,83 @@ This workflow provides a consistent, repeatable way to test the core functionali
 
 ### Step 1: Introduction
 
-Explain the purpose of the audit: "I'm going to run a system audit to make sure the core workflows are behaving as expected. This will test the resume parsing, corpus creation, and fit evaluation pipeline. I'll need your help to confirm the results at the end."
+**Instruction:** Explain the purpose of the audit: "I'm going to run a system audit to make sure the core workflows are behaving as expected. This will test the resume parsing (`init`), job scanning (`job-scan`), and the gap-analysis portion of the resume tailoring (`tailor-resume`) workflows. I'll need your help to confirm the results at the end."
 
 ### Step 2: Setup and Corpus Creation
 
-1.  **- [ ] Load sample resume text:**
-    -   Read the sample resume from `workflows/audit/sample_data/sample_resume.md`.
-    -   Read the sample job description from `workflows/audit/sample_data/sample_job_description.txt`.
+**Instruction:** This step is unchanged. It creates a temporary corpus from sample data to test the parsing logic of the `init` workflow.
+
+1.  **- [ ] Load sample data:**
+    -   Read `workflows/audit/sample_data/sample_resume.md`.
+    -   Read `workflows/audit/sample_data/sample_job_description.txt`.
 
 2.  **- [ ] Create temporary Resume Corpus:**
-    -   **Instruction:** "Using the logic from the `init` workflow, parse the sample resume text into a structured JSON Resume Corpus."
-    -   Save the resulting JSON to a temporary file: `profile/audit_corpus.json`.
-    -   Inform the user: "I've created a temporary Resume Corpus at `profile/audit_corpus.json` by parsing the sample resume. This tests the core parsing logic."
+    -   **Instruction:** Using the logic from the `init` workflow, parse the sample resume into a structured JSON and save it to `profile/audit_corpus.json`.
+    -   Inform the user about the temporary file creation.
 
 3.  **- [ ] Validate Temporary Corpus:**
-    -   **Instruction:** "Run the validation script on the new corpus: `cat profile/audit_corpus.json | tools/validate-json.sh`."
-    -   **If validation fails:** "AUDIT FAILED at the corpus creation step. The `init` workflow's parsing logic may be broken." **STOP**.
-    -   **If validation succeeds:** "Corpus validation passed."
+    -   **Instruction:** Run `cat profile/audit_corpus.json | tools/validate-json.sh`.
+    -   If validation fails, report "AUDIT FAILED at corpus creation" and STOP.
+    -   If it succeeds, report success and continue.
 
 ### Step 3: Run `job-scan`
 
-1.  **- [ ] Execute the `job-scan` workflow:**
+**Instruction:** This step is unchanged. It tests if `job-scan` can correctly parse the sample job description.
+
+1.  **- [ ] Execute `job-scan`:**
     -   Use the sample job description as input.
-    -   Instruct `job-scan` to save its output to `research/openings/audit-innovate-senior-engineer.md`.
+    -   Save the output to `research/openings/audit-innovate-senior-engineer.md`.
 2.  **- [ ] Verify `job-scan` output:**
-    -   If the analysis file was not created, report the failure and stop the audit.
-    -   If it was, inform the user: "`job-scan` completed and created the analysis file."
+    -   Confirm the analysis file was created. If not, report failure and STOP.
 
-### Step 4: Run `evaluate-fit`
+### Step 4: Run Gap Analysis (from `tailor-resume`)
 
-1.  **- [ ] Execute the `evaluate-fit` workflow:**
-    -   Use the temporary corpus (`profile/audit_corpus.json`) and the scanned job file (`research/openings/audit-innovate-senior-engineer.md`) as input.
-2.  **- [ ] Present the assessment:**
-    -   Display the full "Alignment Assessment" table generated by the workflow.
+**Instruction:** This step tests the gap-analysis portion of the `tailor-resume` workflow. We execute Steps 1-2 of `tailor-resume` only, not the full interactive session.
 
-### Step 5: User Verification
+1.  **- [ ] Execute gap analysis:**
+    -   Load the temporary corpus (`profile/audit_corpus.json`) and the scanned job file (`research/openings/audit-innovate-senior-engineer.md`).
+    -   Perform the "Detailed Gap Analysis" (Step 1 of `tailor-resume`): score each requirement against the corpus.
+    -   Present the "Strategic Briefing" (Step 2 of `tailor-resume`): display the alignment score, strengths, and gaps.
 
-Ask the user to review the assessment from Step 4 and confirm its correctness.
+2.  **- [ ] Stop and request verification:**
+    -   After presenting the Strategic Briefing, **DO NOT** proceed to Step 3 (Assemble Draft) or Step 4 (Interactive Gap-Closing).
+    -   Instead, explicitly ask the user to verify the analysis:
+    ```
+    --- AUDIT CHECKPOINT ---
+    I've completed the gap analysis. Before continuing, please verify the results above.
+
+    Press Enter to continue to verification questions, or type 'abort' to stop the audit.
+    ```
+    -   Wait for user input before proceeding to Step 5.
+
+### Step 5: User Verification (New)
+
+**Instruction:** Ask the user to review the "Strategic Briefing" from Step 4 and confirm its correctness.
 
 **Ask these specific questions:**
 
-1.  **"Does the Alignment Score seem correct?** The sample resume is a very strong match for the job description, so the score should be high (likely 80%+)."
-2.  **"Is the Gap Analysis correct?** The resume corpus should contain evidence for all MUST-HAVE requirements. Are there any critical gaps incorrectly listed?"
-3.  **"Is Max's Assessment consistent with his 'brutally honest' persona?** It should be direct and to the point."
+1.  **"Did the 'Strategic Briefing' from the `tailor-resume` workflow run correctly?"**
+2.  **"Does the initial Alignment Score seem correct?** The sample resume is a very strong match for the job description, so the score should be high (likely 80%+)."
+3.  **"Was the Gap Analysis correct?** The briefing should have correctly identified that there are NO critical skill gaps."
 
-If the user reports any major deviations, this may indicate a problem with the workflows or the underlying LLM's behavior.
+If the user reports that the briefing was incorrect or did not run, this may indicate a problem with the `tailor-resume` workflow's initial analysis logic.
 
 ### Step 6: Cleanup
 
+**Instruction:** This step is unchanged.
+
 1.  **- [ ] Delete temporary files:**
-    -   Delete `profile/audit_corpus.json`.
-    -   Delete `research/openings/audit-innovate-senior-engineer.md`.
+    -   `rm profile/audit_corpus.json`
+    -   `rm research/openings/audit-innovate-senior-engineer.md`
 2.  **- [ ] Confirm cleanup:**
     -   "I have removed the temporary files created during the audit."
 
 ### Step 7: Report Final Result
 
-Based on the user's feedback, provide a final summary.
+**Instruction:** This step is unchanged. Based on the user's feedback, report the final pass/fail status of the audit.
 
--   **If user confirms everything looks good:** "Audit complete. The core workflows (parsing, corpus creation, evaluation) appear to be functioning correctly."
--   **If user reports issues:** "Audit complete. It seems there are some deviations in the workflow outputs. This may be due to changes in the underlying LLM. The development team should review the workflow instructions."
+-   **If user confirms everything looks good:** "Audit complete. The core `init` -> `job-scan` -> `tailor-resume` pipeline appears to be functioning correctly."
+-   **If user reports issues:** "Audit complete. It seems there are some deviations in the workflow outputs."
 
 ---
 

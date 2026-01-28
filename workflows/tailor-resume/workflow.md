@@ -2,54 +2,33 @@
 
 ## Summary
 
-**Purpose:** Tailor your resume through interview-driven extraction and voice-matched bullet generation
+**Purpose:** Analyze your fit against a job posting and interactively tailor your resume to address gaps and highlight strengths.
 **Agent:** Job Coach (Max)
 **Reads:**
 - `profile/corpus.json` — Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Parsed job posting (required)
 - `profile/constraints.yaml` — For feedback style preference (optional)
-- `applications/resumes/*.md` — Previous tailored resumes for content reuse (optional)
 **Creates:**
-- `applications/resumes/{company}-{role}.md` — Tailored resume with alignment scores and metadata
-**Approximate time:** 20-45 minutes (interactive probing for each gap)
-**Prerequisites:** job-scan completed for target posting
+- `applications/resumes/{company}-{role}.md` — Tailored resume with alignment scores and metadata.
+- `profile/corpus.json` (updated) — Enriched with new accomplishments or variations discovered during tailoring.
+**Approximate time:** 25-50 minutes
+**Prerequisites:** `job-scan` completed for the target posting.
 
 ---
 
-> **CORE WORKFLOW**: This is the heart of Job Coach & Scout — the interview-driven extraction model that actively probes for forgotten experiences and positions them against specific job requirements.
+> **CORE WORKFLOW**: This is the heart of Job Coach & Scout. It begins with a detailed gap analysis and then uses an interview-driven model to extract forgotten experiences, close gaps, and position you as the ideal candidate.
 
-**Trigger:** User says "help me tailor my resume for [company]", "fit my resume", or after evaluate-fit reveals gaps to address
+**Trigger:** User says "help me tailor my resume for [company]", "tailor my resume", or after `job-scan` identifies a promising role.
 
 ## Persona
 
-**Load and adopt:** `agents/job-coach.md`
-
-Read the full persona file and embody Max for this workflow. Use Max's communication style, core principles, and behaviors throughout.
-
-## Session Continuity
-
-**Claude Code conversation history automatically preserves your progress.** You can pause at any checkpoint and resume later:
-
-- **To pause:** At any checkpoint, say "take a break" or simply close the session
-- **To resume:** In the same Claude Code session, say "let's continue" or "where were we?"
-- **To resume in a new session:** Say "continue tailor-resume for {company}" — Claude Code will reload context and ask where you left off
-
-**Checkpoints are provided after each gap is addressed** (see Step 3f), summarizing:
-- Which gap was just addressed
-- What evidence was captured
-- How many gaps remain
-
-**Note:** If starting a completely new session, you may need to re-share any experiences discussed previously, as they exist only in conversation history.
+**Load and adopt:** `agents/job-coach.md`. Embody Max's expert, direct, and adversarial persona to guide the user through a rigorous tailoring session.
 
 ## Context Required
 
-Before starting, load these files:
-- `profile/corpus.json` — Resume Corpus (required)
-- `research/openings/{company}-{role}.md` — Parsed job posting (required)
-
-If available, also load:
-- `profile/constraints.yaml` — For feedback style preference
-- `applications/resumes/*.md` — Previous tailored resumes (for content reuse)
+- `profile/corpus.json` (required)
+- `research/openings/{company}-{role}.md` (required)
+- `profile/constraints.yaml` (optional)
 
 **If corpus doesn't exist:**
 ```
@@ -69,113 +48,136 @@ Would you like to:
 2. Specify which posting to use (provide filename)
 ```
 
+## Session Continuity
+
+**Claude Code conversation history automatically preserves your progress.** You can pause at any checkpoint and resume later:
+
+- **To pause:** At any checkpoint, say "take a break" or simply close the session
+- **To resume:** In the same Claude Code session, say "let's continue" or "where were we?"
+- **To resume in a new session:** Say "continue tailor-resume for {company}" — Claude Code will reload context and ask where you left off
+
+**Checkpoints are provided after each gap is addressed** (see Step 4d), summarizing:
+- Which gap was just addressed
+- What evidence was captured
+- How many gaps remain
+
+**Note:** If starting a completely new session, you may need to re-share any experiences discussed previously, as they exist only in conversation history.
+
+---
+
 ## Steps
 
-### Step 1: Load Context
+### Step 1: Detailed Gap Analysis
 
-1.  **- [ ] Load files:**
-    -   Load `profile/corpus.json`. If it's missing or invalid, stop and guide the user to run `init`.
-    -   Load `research/openings/{company}-{role}.md` (the parsed job posting).
-    -   Load `profile/constraints.yaml` if available for feedback style.
-2.  **- [ ] Extract requirements:**
-    -   Extract the MUST-HAVE and NICE-TO-HAVE requirements from the job posting file.
+**Instruction:** This step replaces the deprecated `evaluate-fit` workflow. Your goal is to conduct a thorough, read-only analysis before any tailoring begins.
 
-### Step 2: Assemble Draft Resume from Corpus
+**1a. Load Context:**
+- **Instruction:** Load `corpus.json` and the target `research/openings/{company}-{role}.md`.
+- **Instruction:** Extract the MUST-HAVE and NICE-TO-HAVE requirements from the job posting file.
 
-1.  **- [ ] Query Corpus for Best-Fit Content:**
-    -   **Instruction:** "Based on the job requirements, find the best content in `profile/corpus.json` to create a draft resume. For each requirement, search the `accomplishments` and `skills` arrays."
-    -   **Instruction:** "Prioritize `accomplishments` that have matching `skills_tags` or where the `content` semantically matches the requirement. Select the strongest, most relevant accomplishments for each past `position`."
+**1b. Score Each Requirement:**
+- **Instruction:** For each requirement, search the user's corpus for evidence (in `skills` and `accomplishments`). Score each requirement as a Full Match (100%), Partial Match (50%), or No Match (0%) based on the strength of the evidence.
 
-2.  **- [ ] Assemble Draft:**
-    -   **Instruction:** "Assemble a draft resume in Markdown format. Use the selected skills and accomplishments, grouped under their respective job positions. This draft is our starting point for tailoring."
+**1c. Calculate Overall Alignment Score:**
+- **Instruction:** Calculate a weighted alignment score based on the individual requirement scores. MUST-HAVE requirements should be weighted more heavily than NICE-TO-HAVE ones.
 
-### Step 3: Interactive Tailoring & Corpus Expansion (CORE)
+### Step 2: Present Strategic Briefing
 
-This is the interactive interview where you and Max refine the resume and expand the corpus.
+**Instruction:** Present the findings from Step 1 as a "Strategic Briefing" to kick off the tailoring session.
 
-**Instruction for the LLM (Max):**
-"You will now guide the user through the draft resume, section by section. Your goal is to tailor the content for the specific job and capture any new experiences or improved phrasing back into the corpus."
+**2a. Display Score and Verdict:**
+- **Instruction:** State the overall alignment score and a qualitative verdict (e.g., "Excellent Starting Point", "Significant Gaps to Address").
 
-1.  **- [ ] Review and Refine Accomplishments:**
-    -   **Max:** "Here are the experiences I've pulled from your corpus for your time at [Company]. Which of these are most relevant for this role?"
-    -   **(Present selected accomplishments for a position.)**
-    -   **Max:** "Is the wording on this strong enough? How could we make it better?"
-    -   **If user rephrases an accomplishment:**
-        -   **Instruction:** "The user has rephrased an accomplishment. Treat this as a `variation`. Create a new variation object for the corresponding accomplishment in the corpus. Give it a new unique ID (e.g., `var_...`)."
-        -   **(Keep the new JSON object in your context/memory.)**
-    -   **If user wants to add a new accomplishment:**
-        -   **Max:** "It sounds like you have an experience that's not in your corpus yet. Let's capture it. Tell me more about that."
-        -   **(Probe for specifics, quantification, and outcome, just like the old workflow.)**
-        -   **Instruction:** "Once you have the details, draft the accomplishment and READ IT BACK to the user."
-        -   **Max:** "Here's what I'm capturing: '[drafted accomplishment]'. Is this accurate and complete?"
-        -   **CRITICAL:** Only create the JSON object AFTER user confirms accuracy. Never fabricate or embellish details the user didn't provide.
-        -   **(Keep the confirmed JSON object in your context/memory.)**
+**2b. Summarize Strengths and Gaps:**
+- **Instruction:** Create two lists:
+    - **Strengths:** List the top 3-5 requirements where strong evidence was found in the corpus.
+    - **Actionable Gaps:** List the top 3-5 requirements, prioritizing unmet MUST-HAVEs, where little or no evidence was found.
 
-2.  **- [ ] Repeat for all relevant positions and sections.**
+**2c. Set the Agenda:**
+- **Example Dialogue (as Max):** "Alright, I've analyzed your current resume corpus against this role. Your starting alignment is {X}%. You have strong, quantifiable evidence for {list of strengths}. However, we have actionable gaps in {list of gaps}. Our mission now is to go through these gaps one by one and find the experiences in your history to close them. Let's start with the biggest gap: {the top gap}."
 
-3.  **- [ ] Final Review:**
-    -   **Max:** "Okay, I've integrated your changes. Here is the final tailored resume for this role. Does this look right?"
-    -   **(Display the complete, tailored Markdown resume.)**
+### Step 3: Assemble Initial Draft from Strengths
 
-### Step 4: Confirm and Update Resume Corpus
+**Instruction:**
+- Based on the "Strengths" identified in the analysis, assemble an initial draft of the resume. This draft will only contain the parts where the user is already a strong fit.
+- Present this draft as the "solid foundation" that you will now build upon.
 
-This step safely writes the improvements back to your central knowledge base.
+### Step 4: Interactive Gap-Closing Interview (CORE)
 
-**IMPORTANT:** Before updating the corpus, summarize all new entries for user confirmation.
+**Instruction:** This is the interactive interview where you address the "Actionable Gaps" from the strategic briefing. Go through them one by one.
 
-1.  **- [ ] Confirm New Entries:**
-    -   **Max:** "Before I update your corpus, here's what I'm adding:"
-    -   List all new accomplishments and variations drafted during Step 3.
-    -   **Max:** "Is everything here accurate? Any corrections before I save?"
-    -   **CRITICAL:** Wait for explicit user confirmation. Do not proceed if user identifies inaccuracies — fix them first.
+**4a. Address a Specific Gap:**
+- **Example Dialogue (as Max):** "Let's focus on the first gap: the requirement for 'Experience with multi-threaded programming'. I don't see any accomplishments in your corpus that explicitly mention this. Tell me about a time you had to work on a project involving concurrency or parallelism, even if it wasn't the main focus."
 
-2.  **- [ ] Construct New Corpus:**
-    -   **Instruction:** "Load the original `profile/corpus.json` again. Merge the CONFIRMED `accomplishment` and `variation` objects into the appropriate arrays in the JSON structure."
+**4b. Probe and Draft:**
+- **Instruction:** Based on the user's story, probe for specifics, quantification, and outcomes.
+- **Instruction:** Draft a new accomplishment bullet that directly addresses the gap. Read it back to the user for confirmation. "Here's how I'd phrase that for the resume: '{drafted bullet}'. Does that accurately capture it?"
 
-2.  **- [ ] Save to Temporary File:**
-    -   Save the complete, new JSON structure to a temporary file: `profile/corpus.json.tmp`.
+**4c. Capture as New Corpus Entry:**
+- **Instruction:** Once the user confirms the new accomplishment, create a new JSON object for it in your context/memory. Assign it a new `id` and link it to the appropriate `position_id`.
 
-3.  **- [ ] Validate New Corpus:**
-    -   **Instruction:** "Run the validator script: `cat profile/corpus.json.tmp | tools/validate-json.sh`."
-    -   **If validation fails:**
-        -   Report the error. "I've encountered an issue trying to save your new experiences to the corpus. The error is: [stderr]. I will abort the save to prevent corruption, but your tailored resume for this application will still be saved."
-        -   **STOP** the corpus update process but proceed to Step 5.
-    -   **If validation succeeds:** Proceed to the next step.
+**4d. Repeat for all Major Gaps:**
+- **Instruction:** Continue this process until all the major gaps identified in the strategic briefing have been addressed.
 
-4.  **- [ ] Perform Atomic Write:**
-    -   **Instruction:** "The new corpus is valid. Now, perform a safe replacement."
-    -   1. Rename `profile/corpus.json` to `profile/corpus.json.bak` (create a backup).
-    -   2. Rename `profile/corpus.json.tmp` to `profile/corpus.json`.
-    -   Report success: "Your Resume Corpus has been successfully updated with the new experiences from this session."
+**4e. Checkpoint (after each gap):**
+- **Instruction:** After addressing each gap, provide a checkpoint summary:
+```
+✅ Gap addressed: {requirement name}
+   Evidence captured: {brief summary of new accomplishment}
 
-### Step 5: Save Final Tailored Resume
+Progress: {N} of {M} gaps addressed.
+Remaining: {list of remaining gaps}
 
-1.  **- [ ] Save Markdown Resume:**
-    -   Take the final, tailored Markdown resume from the end of Step 3.
-    -   Add a metadata header to it (similar to the old workflow, noting the final score if `evaluate-fit` logic was used).
-    -   Save the file to `applications/resumes/{company}-{role}.md`.
-    -   Confirm: "Your tailored resume for this role has been saved to `applications/resumes/{company}-{role}.md`."
+Ready to continue, or would you like to take a break?
+```
+- If user wants to pause, confirm their progress is saved in conversation history and they can resume with "let's continue".
 
-### Step 6: Completion Summary & Recommendation
+### Step 5: Final Review
 
-**(This section is similar to the old workflow, but focuses on the dual success: tailoring the resume AND improving the corpus.)**
+**Instruction:**
+- After addressing the gaps, assemble the complete, tailored resume including both the original strengths and the newly created accomplishments.
+- Present this final version to the user for their approval.
+
+### Step 6: Confirm and Update Resume Corpus
+
+**Instruction:** This step safely writes the improvements back to the central knowledge base. It is identical to the corresponding step in the original workflow.
+
+**6a. Confirm New Entries:**
+- **Instruction:** Summarize all new accomplishments and variations drafted during the session and ask the user for final confirmation before saving.
+
+**6b. Construct and Validate:**
+- **Instruction:** Merge the new entries into the corpus, save to a `.tmp` file, and validate it using `tools/validate-json.sh`.
+
+**6c. Perform Atomic Write:**
+- **Instruction:** If validation passes, perform the safe rename (`.bak`, then rename `.tmp`). Report success to the user.
+
+### Step 7: Save Final Tailored Resume
+
+**Instruction:** This step is also identical to the original workflow.
+
+- **Instruction:** Add a metadata header to the final markdown resume, including the final (improved) alignment score.
+- **Instruction:** Save the file to `applications/resumes/{company}-{role}.md`.
+
+### Step 8: Completion Summary & Recommendation
 
 **Summary:**
 ```
 ## Tailoring Complete!
 
+We've significantly improved your alignment for this role.
+- **Initial Score:** {X}%
+- **Final Score:** {Y}%
+
 Your resume has been tailored for {Company} and saved.
 
-More importantly, your central Resume Corpus has been updated with {X} new accomplishments and {Y} improved variations, making your knowledge base even stronger for future applications.
+More importantly, your central Resume Corpus has been updated with {N} new accomplishments, making you a stronger candidate for future roles requiring these skills.
 
 **File saved:** `applications/resumes/{company}-{role}.md`
 **Corpus updated:** `profile/corpus.json`
 ```
 
 **Recommend Next:**
-"Your resume is now tailored for {Company}. The logical next step is to generate a cover letter that complements it. Would you like to start the cover-letter workflow now?"
-
-**(Handle user response as before.)**
+- **Instruction:** Suggest `cover-letter` as the logical next step. "Your tailored resume is ready. Shall we write a compelling cover letter to go with it?"
 
 ## Output
 
@@ -186,8 +188,4 @@ More importantly, your central Resume Corpus has been updated with {X} new accom
 
 ## Recommend Next
 
-After this workflow completes successfully:
-
-1. **Suggest:** cover-letter
-   **Rationale:** "Resume tailored! Let's write a matching cover letter."
-   **Context to pass:** `applications/resumes/{company}-{role}.md` (the tailored resume), `research/openings/{company}-{role}.md` (job posting).
+After this workflow completes successfully, suggest **cover-letter**.

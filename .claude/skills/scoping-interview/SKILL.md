@@ -1,7 +1,6 @@
 ---
 name: scoping-interview
 description: Capture your job search preferences through a conversational interview. Creates constraints.yaml with salary, location, role preferences, and dealbreakers.
-disable-model-invocation: true
 ---
 
 # Scoping Interview Workflow
