@@ -9,6 +9,7 @@
 - User-provided writing samples (optional)
 **Creates:**
 - `profile/corpus.json` — Your structured Resume Corpus
+- `profile/voice_profile.json` — Your analyzed writing voice characteristics (if samples provided)
 - `profile/imports/` — Drop zone for source resumes
 - `profile/writing_samples/` — Voice analysis samples
 - `applications/resumes/` — Directory for tailored resumes
@@ -452,7 +453,156 @@ Writing samples help me match your voice when generating cover letters. This is 
 - Provide file paths separated by commas
 - Type 'skip' if you don't have any right now"
 
-**(This step's logic for copying files remains the same as before)**
+**Actions:**
+1. If user provides paths:
+   - Read each file
+   - Copy to `profile/writing_samples/` with original filename
+   - Track which files were imported for Step 5a
+2. If user skips:
+   - Note that no samples were provided
+   - Skip Step 5a (voice profile generation)
+
+### Step 5a: Generate Voice Profile
+
+**Skip this step if:** No writing samples were imported in Step 5.
+
+**Purpose:** Analyze writing samples to create a structured voice profile that captures the user's unique writing style. This enables consistent voice matching across cover letters, LinkedIn content, and other generated materials.
+
+**Actions:**
+
+1.  **- [ ] Analyze writing samples:**
+    -   Read all files in `profile/writing_samples/`
+    -   For each sample, analyze the following dimensions:
+
+    **Tone & Register:**
+    - Formality level: formal, professional, conversational, casual
+    - Confidence style: assertive, measured, humble, collaborative
+    - Energy: enthusiastic, calm, reserved, dynamic
+
+    **Sentence Structure:**
+    - Average sentence length tendency: short-punchy, medium, long-complex
+    - Sentence variety: consistent, varied
+    - Preferred openings: direct statements, context-setting, questions
+
+    **Vocabulary Patterns:**
+    - Complexity: simple-clear, moderate, sophisticated
+    - Technical density: minimal, moderate, heavy
+    - Industry jargon usage: avoided, selective, frequent
+    - Distinctive words/phrases the user frequently uses
+
+    **Voice & Perspective:**
+    - Person: first-person dominant, mixed, third-person
+    - Voice: active-dominant, mixed, passive-tolerant
+    - Self-reference style: "I achieved", "Led the team", "We delivered"
+
+    **Rhetorical Patterns:**
+    - Argument structure: direct-first, building, storytelling
+    - Evidence style: metrics-heavy, example-driven, principle-based
+    - Persuasion approach: logical, emotional, credibility-based
+
+    **Paragraph & Flow:**
+    - Paragraph length: short, medium, varied
+    - Transition style: explicit connectors, implicit flow, minimal
+    - Opening tendency: hook, context, direct statement
+    - Closing tendency: call-to-action, summary, forward-looking
+
+2.  **- [ ] Identify signature elements:**
+    -   Extract 3-5 distinctive phrases or constructions the user favors
+    -   Note any consistent patterns in how they describe achievements
+    -   Identify words they use frequently vs. words they avoid
+
+3.  **- [ ] Generate voice profile:**
+    -   Create `profile/voice_profile.json` with the analyzed characteristics:
+    ```json
+    {
+      "schema_version": "1.0",
+      "created_at": "{ISO timestamp}",
+      "samples_analyzed": ["{filename_1}", "{filename_2}"],
+      "sample_count": {N},
+      "total_word_count": {N},
+
+      "tone": {
+        "formality": "{formal|professional|conversational|casual}",
+        "confidence": "{assertive|measured|humble|collaborative}",
+        "energy": "{enthusiastic|calm|reserved|dynamic}",
+        "notes": "{any nuances observed}"
+      },
+
+      "sentence_structure": {
+        "length_tendency": "{short-punchy|medium|long-complex|varied}",
+        "variety": "{consistent|varied}",
+        "common_openings": ["{pattern_1}", "{pattern_2}"]
+      },
+
+      "vocabulary": {
+        "complexity": "{simple-clear|moderate|sophisticated}",
+        "technical_density": "{minimal|moderate|heavy}",
+        "jargon_usage": "{avoided|selective|frequent}",
+        "favorite_words": ["{word_1}", "{word_2}"],
+        "avoided_words": ["{word_1}", "{word_2}"]
+      },
+
+      "voice": {
+        "person": "{first-person|mixed|third-person}",
+        "active_passive": "{active-dominant|mixed|passive-tolerant}",
+        "self_reference_examples": ["{example_1}", "{example_2}"]
+      },
+
+      "rhetoric": {
+        "argument_structure": "{direct-first|building|storytelling}",
+        "evidence_style": "{metrics-heavy|example-driven|principle-based}",
+        "persuasion_approach": "{logical|emotional|credibility-based}"
+      },
+
+      "flow": {
+        "paragraph_length": "{short|medium|varied}",
+        "transitions": "{explicit|implicit|minimal}",
+        "opening_tendency": "{hook|context|direct}",
+        "closing_tendency": "{call-to-action|summary|forward-looking}"
+      },
+
+      "signature_elements": {
+        "distinctive_phrases": ["{phrase_1}", "{phrase_2}"],
+        "achievement_pattern": "{how they typically describe accomplishments}",
+        "storytelling_style": "{brief description of narrative approach}"
+      },
+
+      "generation_guidance": {
+        "do": ["{guideline_1}", "{guideline_2}"],
+        "avoid": ["{anti-pattern_1}", "{anti-pattern_2}"],
+        "example_sentences": ["{representative_sentence_1}", "{representative_sentence_2}"]
+      }
+    }
+    ```
+
+4.  **- [ ] Validate voice profile:**
+    -   Run: `cat profile/voice_profile.json | tools/validate-json.sh`
+    -   If validation fails, fix and retry.
+
+5.  **- [ ] Confirm with user:**
+    -   Display a summary of the detected voice characteristics:
+    ```
+    Voice Profile Created:
+
+    Tone: {formality}, {confidence}, {energy}
+    Style: {sentence_length} sentences, {complexity} vocabulary
+    Voice: {person} person, {active_passive} voice
+    Rhetoric: {argument_structure}, {evidence_style}
+
+    Signature elements I noticed:
+    - {distinctive_phrase_1}
+    - {distinctive_phrase_2}
+    - {achievement_pattern_summary}
+
+    This profile will be used to match your voice in cover letters
+    and other generated content. You can edit profile/voice_profile.json
+    to fine-tune any characteristics.
+
+    Does this sound like you? [Yes / Adjust / Skip voice matching]
+    ```
+    -   If user wants adjustments: Allow them to specify corrections (e.g., "I'm more formal than that", "I never use jargon")
+    -   Apply adjustments to the profile and save.
+    -   If user skips: Delete the voice profile file and proceed without voice matching.
 
 ### Step 6: Completion Summary
 
@@ -474,6 +624,8 @@ Created directories:
 Created files:
 - profile/corpus.json (Your Resume Corpus — built from {N} source(s))
 - profile/writing_samples/[list of samples]
+{If voice profile was generated:}
+- profile/voice_profile.json (Your writing voice characteristics)
 ```
 
 **Next step:**
@@ -493,6 +645,7 @@ The scoping interview is where we establish your job search constraints. This cr
 - `profile/corpus.json` (The user's structured resume knowledge base)
 - `profile/resume_template.yaml` (PDF styling template, if PDF imported)
 - `profile/writing_samples/*` (imported samples, if any)
+- `profile/voice_profile.json` (analyzed writing voice characteristics, if samples provided)
 - `research/market_skills.json` (empty seed for market intelligence)
 
 ## Recommend Next
