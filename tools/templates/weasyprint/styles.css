@@ -1,0 +1,392 @@
+/* Resume PDF Styles - WeasyPrint
+ *
+ * This stylesheet supports the resume template system.
+ * Configuration values are injected from resume_template.yaml via CSS variables.
+ */
+
+/* ============================================
+   RESET & BASE STYLES
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-size: var(--body-size, 11pt);
+    color: var(--body-color, #333333);
+    line-height: 1.4;
+}
+
+/* ============================================
+   FONT FAMILY VARIANTS
+   ============================================ */
+
+.font-sans-serif {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.font-serif {
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
+}
+
+/* ============================================
+   TYPOGRAPHY STYLE VARIANTS
+   ============================================ */
+
+/* Modern style - clean, minimal */
+.style-modern h1,
+.style-modern h2,
+.style-modern h3 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.style-modern h2 {
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--primary-color, #2C3E50);
+    padding-bottom: 0.2em;
+    margin-bottom: 0.8em;
+    margin-top: 1.2em;
+}
+
+/* Traditional style - classic, formal */
+.style-traditional h1,
+.style-traditional h2,
+.style-traditional h3 {
+    font-weight: bold;
+}
+
+.style-traditional h2 {
+    font-size: 1.1em;
+    border-bottom: 1px solid var(--secondary-color, #7F8C8D);
+    padding-bottom: 0.3em;
+    margin-bottom: 0.8em;
+    margin-top: 1.2em;
+}
+
+/* Minimal style - understated */
+.style-minimal h1,
+.style-minimal h2,
+.style-minimal h3 {
+    font-weight: 500;
+}
+
+.style-minimal h2 {
+    font-size: 1em;
+    color: var(--secondary-color, #7F8C8D);
+    margin-bottom: 0.6em;
+    margin-top: 1em;
+}
+
+/* ============================================
+   HEADER STYLES
+   ============================================ */
+
+.header {
+    margin-bottom: 1em;
+    padding-bottom: 0.8em;
+    border-bottom: 1px solid var(--secondary-color, #7F8C8D);
+}
+
+/* Name positioning */
+.header.name-left {
+    text-align: left;
+}
+
+.header.name-center {
+    text-align: center;
+}
+
+.header.name-right {
+    text-align: right;
+}
+
+/* Name sizing */
+.name {
+    color: var(--primary-color, #2C3E50);
+    margin-bottom: 0.3em;
+}
+
+.name.size-medium {
+    font-size: 1.5em;
+}
+
+.name.size-large {
+    font-size: 1.8em;
+}
+
+.name.size-xlarge {
+    font-size: 2.2em;
+}
+
+/* Contact info layouts */
+.contact {
+    color: var(--secondary-color, #7F8C8D);
+    font-size: 0.9em;
+}
+
+.contact-single-line {
+    white-space: nowrap;
+}
+
+.contact-multi-line {
+    line-height: 1.6;
+}
+
+.contact-sidebar {
+    /* Used with two-column-sidebar layout */
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+/* ============================================
+   LAYOUT VARIANTS
+   ============================================ */
+
+/* Single column - default */
+.layout-single-column .content {
+    width: 100%;
+}
+
+/* Two column with sidebar (narrower left column) */
+.layout-two-column-sidebar .content {
+    display: grid;
+    grid-template-columns: 30% 1fr;
+    gap: 1.5em;
+}
+
+.layout-two-column-sidebar .sidebar {
+    border-right: 1px solid var(--secondary-color, #7F8C8D);
+    padding-right: 1em;
+}
+
+/* Two column equal width */
+.layout-two-column-equal .content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5em;
+}
+
+/* ============================================
+   SECTION STYLES
+   ============================================ */
+
+section {
+    margin-bottom: 1em;
+}
+
+section:last-child {
+    margin-bottom: 0;
+}
+
+/* ============================================
+   EXPERIENCE/POSITION STYLES
+   ============================================ */
+
+.position {
+    margin-bottom: 1em;
+}
+
+.position-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.position-title {
+    font-weight: 600;
+    color: var(--primary-color, #2C3E50);
+}
+
+.position-company {
+    color: var(--body-color, #333333);
+}
+
+.position-date {
+    color: var(--secondary-color, #7F8C8D);
+    font-size: 0.9em;
+}
+
+/* Title-first ordering (default) */
+.title-first .position-title {
+    display: block;
+}
+
+.title-first .position-company {
+    font-weight: normal;
+}
+
+/* Company-first ordering */
+.company-first .position-company {
+    font-weight: 600;
+    color: var(--primary-color, #2C3E50);
+}
+
+.company-first .position-title {
+    font-weight: normal;
+    color: var(--body-color, #333333);
+}
+
+/* Date positioning */
+.date-right .position-date {
+    text-align: right;
+}
+
+.date-inline .position-date {
+    display: inline;
+}
+
+/* ============================================
+   BULLET STYLES
+   ============================================ */
+
+ul {
+    margin-left: 1.2em;
+    margin-top: 0.4em;
+}
+
+li {
+    margin-bottom: 0.3em;
+    line-height: 1.4;
+}
+
+/* Bullet style variants */
+.bullet-dot li {
+    list-style-type: disc;
+}
+
+.bullet-dash li {
+    list-style-type: none;
+}
+
+.bullet-dash li::before {
+    content: "– ";
+    margin-left: -1em;
+}
+
+.bullet-arrow li {
+    list-style-type: none;
+}
+
+.bullet-arrow li::before {
+    content: "› ";
+    margin-left: -1em;
+    color: var(--primary-color, #2C3E50);
+}
+
+/* ============================================
+   SKILLS SECTION STYLES
+   ============================================ */
+
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em;
+}
+
+.skills-tags .skill {
+    background-color: #f0f0f0;
+    padding: 0.2em 0.6em;
+    border-radius: 3px;
+    font-size: 0.85em;
+}
+
+.skills-list {
+    list-style-type: none;
+    margin-left: 0;
+}
+
+.skills-list li {
+    margin-bottom: 0.2em;
+}
+
+.skills-inline {
+    display: inline;
+}
+
+.skills-inline .skill:not(:last-child)::after {
+    content: " • ";
+    color: var(--secondary-color, #7F8C8D);
+}
+
+/* ============================================
+   DIVIDER STYLES
+   ============================================ */
+
+.has-dividers section {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.8em;
+}
+
+.has-dividers section:last-child {
+    border-bottom: none;
+}
+
+/* ============================================
+   EDUCATION STYLES
+   ============================================ */
+
+.education-entry {
+    margin-bottom: 0.6em;
+}
+
+.education-degree {
+    font-weight: 600;
+}
+
+.education-school {
+    color: var(--secondary-color, #7F8C8D);
+}
+
+.education-date {
+    color: var(--secondary-color, #7F8C8D);
+    font-size: 0.9em;
+}
+
+/* ============================================
+   LINK STYLES
+   ============================================ */
+
+a {
+    color: var(--primary-color, #2C3E50);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   PRINT-SPECIFIC STYLES
+   ============================================ */
+
+@media print {
+    body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    /* Avoid page breaks inside elements */
+    .position,
+    .education-entry,
+    li {
+        page-break-inside: avoid;
+    }
+
+    /* Prefer page breaks before sections */
+    section {
+        page-break-before: auto;
+        page-break-after: auto;
+    }
+
+    h2 {
+        page-break-after: avoid;
+    }
+}

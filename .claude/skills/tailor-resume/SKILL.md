@@ -1,7 +1,7 @@
 ---
 name: tailor-resume
-description: Tailor your resume for a specific job posting through interview-driven extraction. Creates a targeted resume and updates your corpus with new experiences.
-argument-hint: [company-name]
+description: Modify an existing resume for a specific job posting. Requires a starting resume to modify, then enhances it with corpus content and interview-discovered experiences.
+argument-hint: [company-name] [starting-resume-path]
 ---
 
 # Tailor Resume Workflow
@@ -10,13 +10,27 @@ argument-hint: [company-name]
 
 Read the entire workflow file and execute it step by step. This workflow:
 
-1. Loads your Resume Corpus and the parsed job posting
-2. Assembles a draft resume from best-fit corpus content
-3. Conducts interactive tailoring (the core interview process)
-4. Probes for forgotten experiences and captures new accomplishments
-5. Updates your corpus with confirmed new entries
-6. Saves the tailored resume to applications/resumes/
+1. **Requires a starting resume** — asks user to select from existing resumes or provide a path
+2. Loads the starting resume, corpus, and parsed job posting
+3. Scores the starting resume against job requirements
+4. Applies "easy wins" from corpus content not in the starting resume
+5. Conducts interactive gap-closing interview for remaining gaps
+6. Updates corpus with confirmed new entries
+7. **Saves both Markdown and PDF** versions of the tailored resume
 
-This is the heart of Job Coach & Scout. Follow all steps exactly as written, especially the confirmation steps before saving new entries.
+**PDF Output (Step 7b):**
+After saving the Markdown resume, this workflow automatically generates a PDF version if PDF tools are available:
+- **WeasyPrint** (preferred): `pip install weasyprint`
+- **Typst** (fallback): https://typst.app/
+
+The PDF uses styling from `profile/resume_template.yaml` (created during `/init` if you imported a PDF). If no template exists, default professional styling is applied.
+
+**Output files:**
+- `applications/resumes/{company}-{role}.md` — Always created
+- `applications/resumes/{company}-{role}.pdf` — Created if PDF tools installed
+
+**Graceful fallback:** If no PDF tools are installed, the workflow completes successfully with the Markdown file and provides install instructions for enabling PDF generation.
+
+This is the heart of Job Coach & Scout. The starting resume requirement ensures we're modifying real content rather than generating from scratch.
 
 $ARGUMENTS

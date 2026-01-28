@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} - Resume</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Template configuration variables injected from resume_template.yaml */
+        :root {
+            --primary-color: {{ colors.primary | default('#2C3E50') }};
+            --secondary-color: {{ colors.secondary | default('#7F8C8D') }};
+            --body-color: {{ colors.body | default('#333333') }};
+            --body-size: {{ typography.body_size | default('11pt') }};
+            --margin-top: {{ layout.margins.top | default('0.5in') }};
+            --margin-bottom: {{ layout.margins.bottom | default('0.5in') }};
+            --margin-left: {{ layout.margins.left | default('0.5in') }};
+            --margin-right: {{ layout.margins.right | default('0.5in') }};
+        }
+
+        @page {
+            size: {{ layout.page_size | default('letter') }};
+            margin: var(--margin-top) var(--margin-right) var(--margin-bottom) var(--margin-left);
+        }
+    </style>
+</head>
+<body class="layout-{{ layout.type | default('single-column') }} style-{{ typography.style | default('modern') }} font-{{ typography.font_family | default('sans-serif') }}">
+    <header class="header name-{{ header.name_position | default('left') }}">
+        <h1 class="name size-{{ header.name_size | default('large') }}">{{ name }}</h1>
+        <div class="contact contact-{{ header.contact_layout | default('single-line') }}">
+            {{ contact_info }}
+        </div>
+    </header>
+
+    <main class="content">
+        {{ content }}
+    </main>
+</body>
+</html>

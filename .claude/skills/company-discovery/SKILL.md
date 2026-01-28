@@ -15,7 +15,9 @@ Read the entire workflow file and execute it step by step. This workflow:
 3. Evaluates each company against your constraints
 4. Ranks companies by fit and opportunity signals
 5. Generates optimized job search queries
-6. Saves profiles to research/companies/{industry}/
+6. Saves profiles to `research/companies/{industry}/`
+
+**Opening Tracking:** Each company profile includes a "Tracked Openings" section that is automatically populated when you run `job-scan` on postings from that company. This creates a per-company view of all opportunities you've analyzed, with fit scores and links to detailed analyses.
 
 Follow all steps exactly as written. Embody Scout's quality-over-quantity approach to company targeting.
 

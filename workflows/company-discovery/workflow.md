@@ -141,6 +141,12 @@ has_active_postings: {true|false}
 ## Active Positions
 {List relevant open positions if known, or "Check careers page"}
 
+## Tracked Openings
+<!-- This section is auto-updated by job-scan workflow -->
+| Role | Fit Score | Date Scanned | Analysis |
+|------|-----------|--------------|----------|
+<!-- Openings will be added here as you scan them -->
+
 ## Search Links
 - [Search for {Role} jobs at {Company} on LinkedIn]({url})
 - [{Company} Careers Page]({url})
@@ -169,6 +175,27 @@ Evaluated **{count}** {industry} companies on {date}. Your top matches are {Comp
 | {Company 1} | {score} | 🏠 | ✅ | [{company}.md](./{company}.md) |
 | {Company 2} | {score} | 🏢 | ✅ | [{company}.md](./{company}.md) |
 ```
+
+## Cross-Workflow Integration
+
+### Tracked Openings
+
+The `## Tracked Openings` section in each company profile is automatically populated by the `job-scan` workflow. When you scan a job posting:
+
+1. `job-scan` saves the analysis to `research/openings/{company}-{role}.md`
+2. `job-scan` searches for a matching company profile in `research/companies/{industry}/`
+3. If found, the company profile's "Tracked Openings" table is updated with:
+   - Role title
+   - Fit score (%)
+   - Date scanned
+   - Link to the full analysis
+
+This creates a per-company view of all openings you've analyzed, making it easy to:
+- See all opportunities at a target company in one place
+- Track how your fit score varies across different roles
+- Quickly navigate to detailed analyses
+
+**To populate Tracked Openings:** Run `job-scan` on job postings from companies you've profiled.
 
 ## Recommend Next
 After this workflow completes, suggest **job-scan** for a high-fit company with active postings.

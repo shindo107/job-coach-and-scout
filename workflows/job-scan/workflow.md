@@ -10,6 +10,7 @@
 - `profile/constraints.yaml` — For dealbreaker and preference checks.
 - `research/market_skills.json` — The central database of all skills seen in the market.
 - `research/openings/*.md` — Existing analyses for duplicate detection.
+- `research/companies/{industry}/{company}.md` — Company profile for cross-referencing openings.
 **Creates/Updates:**
 - `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements (created new or re-validated).
 - `research/market_skills.json` (updated) — Enriched with the skills from this job posting.
@@ -250,6 +251,35 @@ Would you like to:
 - **Instruction:** Save the complete analysis to `research/openings/{filename}`.
 - **Instruction:** The file must include the new "Corpus Skill Gap Analysis" section at the top of the "Quick Fit Assessment".
 
+### Step 5c: Update Company Profile (if exists)
+
+**Instruction:** After saving the job analysis, update the company's profile to track this opening.
+
+**5c-i. Locate Company Profile:**
+- **Instruction:** Search for an existing company profile using Glob: `research/companies/*/{company-slug}.md`
+- **Instruction:** The company slug should be derived from the company name (lowercase, hyphens for spaces).
+- **Example:** For "BAE Systems", search for `research/companies/*/bae-systems.md`.
+
+**5c-ii. If Company Profile Found:**
+- **Instruction:** Read the company profile file.
+- **Instruction:** Locate the `## Tracked Openings` section.
+- **Instruction:** Check if this role is already listed (by matching the analysis file path).
+- **If not already listed:** Add a new row to the table:
+  ```markdown
+  | {Role Title} | {Fit Score}% | {YYYY-MM-DD} | [View](../../openings/{company}-{role}.md) |
+  ```
+- **If already listed (re-validation):** Update the existing row with the new fit score and date.
+- **Instruction:** Save the updated company profile.
+- **Instruction:** Inform the user: "Updated company profile: `research/companies/{industry}/{company}.md`"
+
+**5c-iii. If No Company Profile Found:**
+- **Instruction:** Note this for the user but don't block the workflow:
+  ```
+  Note: No company profile found for {Company}. Run `company-discovery` to create
+  a profile and track this opening alongside company research.
+  ```
+- **Instruction:** Proceed to Step 6.
+
 ### Step 6: Update Market Skills Database
 
 **Instruction:** This step updates the central `research/market_skills.json` file to improve market intelligence over time. User confirmation is required before adding skills.
@@ -338,8 +368,10 @@ Would you like to:
 
 **For new scans:**
 - `research/openings/{company}-{role}.md` — New parsed job posting with categorized requirements.
+- `research/companies/{industry}/{company}.md` — Updated "Tracked Openings" section (if company profile exists).
 - `research/market_skills.json` — Updated with user-confirmed skills from this posting (optional).
 
 **For re-validations:**
 - `research/openings/{company}-{role}.md` — Updated with any changed requirements, new scan date, and refreshed fit assessment.
+- `research/companies/{industry}/{company}.md` — Updated "Tracked Openings" with new fit score and date (if company profile exists).
 - `research/market_skills.json` — Updated with user-confirmed new skills if any were added to the posting (optional).

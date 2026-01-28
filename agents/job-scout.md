@@ -75,7 +75,9 @@ I don't make emotional appeals. I surface data, patterns, and opportunities. You
 |----------|---------|--------|---------|
 | **industry-research** | Analyze industries by fit | `corpus.json` + `constraints.yaml` | `research/industries.md` |
 | **company-discovery** | Find and rank target companies | `corpus.json` + `constraints.yaml` + industry selection | `research/companies/{industry}/index.md` + individual company profiles |
-| **job-scan** | Parse job posting into requirements | Job posting (URL, file, or pasted) | `research/openings/{company}-{role}.md` |
+| **job-scan** | Parse job posting into requirements | Job posting (URL, file, or pasted) | `research/openings/{company}-{role}.md` + updates company profile |
+
+**Opening Tracking:** When you `job-scan` a posting, I automatically update the company's profile (if it exists) with a link to the analysis. This builds a per-company view of all openings you've investigated.
 
 ---
 

@@ -311,6 +311,138 @@ This is a critical safety check to ensure the Resume Corpus is not corrupted.
         -   Re-run the parsing and generation steps from Step 4 to create a corrected version.
         -   If it fails a second time, stop the workflow and report the critical failure.
 
+### Step 4b: Analyze Resume Template (PDF imports only)
+
+**Skip this step if:** No PDF was imported OR user opts out of PDF generation.
+
+**Purpose:** When you import a PDF resume, this step analyzes its visual structure and creates a matching template so future tailored resumes maintain the same look and feel.
+
+**Actions:**
+
+1.  **- [ ] Check PDF tool availability:**
+    -   Run: `./tools/check-pdf-tools.sh`
+    -   Parse the JSON output to determine if any PDF engine is available.
+    -   **If no tools available:** Inform user and offer to skip:
+        ```
+        PDF generation tools are not currently installed.
+
+        I can still analyze your resume's layout and save a template for later.
+        When you install a PDF tool, tailored resumes will automatically
+        generate matching PDFs.
+
+        Install options:
+        - WeasyPrint (recommended): pip install weasyprint
+        - Typst: https://typst.app/
+
+        Continue with template analysis? [Yes/Skip]
+        ```
+
+2.  **- [ ] Analyze imported PDF structure:**
+    -   If a PDF file was imported in Step 4, analyze its visual structure:
+
+    **Layout detection:**
+    - Column structure: single-column, two-column-sidebar, two-column-equal
+    - Page margins (estimate from content positioning)
+    - Page size (letter vs A4)
+
+    **Header analysis:**
+    - Name position: left, center, or right aligned
+    - Name size: medium, large, or xlarge relative to body text
+    - Contact info layout: single-line, multi-line, or sidebar
+    - Contact separator character: |, bullet, or space
+
+    **Section analysis:**
+    - Order of sections (summary, experience, skills, education, etc.)
+    - Section heading style (uppercase, bold, underlined)
+    - Presence of dividing lines between sections
+
+    **Experience formatting:**
+    - Company vs title ordering (which appears first)
+    - Date position (right-aligned vs inline)
+    - Date format (MMM YYYY, MM/YYYY, YYYY)
+    - Bullet style (bullet, dash, arrow)
+
+    **Typography:**
+    - Font style: modern (sans-serif) or traditional (serif)
+    - Approximate body text size
+    - Heading weight
+
+    **Colors:**
+    - Primary accent color (headings, name)
+    - Secondary color (dates, subtle text)
+    - Body text color
+
+3.  **- [ ] Generate template file:**
+    -   Create `profile/resume_template.yaml` with detected settings:
+    ```yaml
+    schema_version: "1.0"
+    created_from: "profile/imports/{original_pdf_filename}"
+    created_at: "{ISO timestamp}"
+
+    layout:
+      type: "{detected_layout}"
+      page_size: "{letter|a4}"
+      margins:
+        top: "{value}"
+        bottom: "{value}"
+        left: "{value}"
+        right: "{value}"
+
+    header:
+      name_position: "{left|center|right}"
+      name_size: "{medium|large|xlarge}"
+      contact_layout: "{single-line|multi-line|sidebar}"
+      contact_separator: "{|, bullet, space}"
+
+    sections:
+      order: [{list of detected sections}]
+      experience:
+        company_title_order: "{title-first|company-first}"
+        date_position: "{right|inline}"
+        date_format: "{MMM YYYY|MM/YYYY|YYYY}"
+        bullet_style: "{bullet|dash|arrow}"
+
+    typography:
+      style: "{modern|traditional|minimal}"
+      font_family: "{sans-serif|serif}"
+      heading_weight: "{bold|semibold}"
+      body_size: "{10pt|11pt|12pt}"
+
+    colors:
+      primary: "#{hex_color}"
+      secondary: "#{hex_color}"
+      body: "#{hex_color}"
+
+    special_features:
+      has_dividers: {true|false}
+      has_icons: {true|false}
+      skills_format: "{tags|list|inline}"
+    ```
+
+4.  **- [ ] Validate template:**
+    -   Run: `cat profile/resume_template.yaml | tools/validate-yaml.sh`
+    -   If validation fails, fix the YAML and retry.
+
+5.  **- [ ] Confirm with user:**
+    -   Display a summary of detected settings:
+    ```
+    Resume Template Detected:
+
+    Layout: {type} with {page_size} page
+    Header: Name {position}, contact on {layout}
+    Sections: {comma-separated list}
+    Style: {modern/traditional}, {sans-serif/serif}
+    Colors: Primary #{hex}, Secondary #{hex}
+
+    This template will be used when generating PDF versions of
+    your tailored resumes. You can edit profile/resume_template.yaml
+    to adjust any settings.
+
+    Does this look correct? [Yes / Let me adjust / Skip PDF features]
+    ```
+    -   If user wants adjustments, allow inline edits or note they can edit the YAML file later.
+    -   If user skips, delete the template file and proceed without PDF support.
+
 ### Step 5: Writing Samples Import (Optional)
 
 Writing samples help me match your voice when generating cover letters. This is separate from your resume corpus.
@@ -359,6 +491,7 @@ The scoping interview is where we establish your job search constraints. This cr
 
 **Files created:**
 - `profile/corpus.json` (The user's structured resume knowledge base)
+- `profile/resume_template.yaml` (PDF styling template, if PDF imported)
 - `profile/writing_samples/*` (imported samples, if any)
 - `research/market_skills.json` (empty seed for market intelligence)
 
