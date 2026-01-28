@@ -207,13 +207,47 @@ Would you like to:
 
 ### Step 6: Update Market Skills Database
 
-**Instruction:** This step updates the central `research/market_skills.json` file to improve market intelligence over time.
+**Instruction:** This step updates the central `research/market_skills.json` file to improve market intelligence over time. User confirmation is required before adding skills.
 
 **6a. Read the Market Skills DB:**
 - **Instruction:** Read the contents of `research/market_skills.json`. If the file doesn't exist, initialize an empty JSON object `{}`.
 
-**6b. Update Skill Counts:**
-- **Instruction:** For each technical skill parsed from the current job posting:
+**6b. Present Skills for Confirmation:**
+- **Instruction:** Extract the list of technical skills parsed from this job posting (from Step 3).
+- **Instruction:** Categorize them for the user:
+  - **New skills** — Skills not currently in the market database
+  - **Existing skills** — Skills already tracked (will increment counts)
+- **Instruction:** Present the skills to the user for review:
+  ```
+  📊 I extracted the following technical skills from this posting:
+
+  **New to your market database:**
+  - Kubernetes (MUST-HAVE)
+  - Terraform (NICE-TO-HAVE)
+
+  **Already tracked (will update counts):**
+  - Python (MUST-HAVE) — currently seen in 14 postings
+  - Go (MUST-HAVE) — currently seen in 7 postings
+
+  Would you like me to add these to your market skills database?
+  1. Yes, add all
+  2. Let me edit the list first
+  3. Skip — don't update the database
+  ```
+
+**6c. Handle User Response:**
+- **If user chooses "Yes, add all":** Proceed to 6d with all extracted skills.
+- **If user chooses "Let me edit the list":**
+  - **Instruction:** Ask the user which skills to remove or modify.
+  - **Instruction:** Common reasons to edit:
+    - Remove overly generic terms (e.g., "Communication", "Problem Solving")
+    - Correct skill names (e.g., "JS" → "JavaScript")
+    - Remove duplicates or variations (e.g., keep "React" but remove "React.js")
+  - **Instruction:** After edits, confirm the final list before proceeding.
+- **If user chooses "Skip":** Skip to Step 7 without updating the database.
+
+**6d. Update Skill Counts:**
+- **Instruction:** For each confirmed technical skill:
     - If the skill already exists in the database, increment its `count` and its `must_have_count` or `nice_to_have_count`.
     - If the skill is new, add it to the database with an initial `count: 1`.
 - **Example Structure:**
@@ -221,14 +255,15 @@ Would you like to:
     {
       "Python": { "count": 15, "must_have_count": 10, "nice_to_have_count": 5 },
       "Go": { "count": 8, "must_have_count": 8, "nice_to_have_count": 0 },
-      "Chrony": { "count": 1, "must_have_count": 1, "nice_to_have_count": 0 }
+      "Kubernetes": { "count": 1, "must_have_count": 1, "nice_to_have_count": 0 }
     }
     ```
 
-**6c. Safe Write-Back:**
+**6e. Safe Write-Back:**
 - **Instruction:** Save the updated JSON object to a temporary file, `research/market_skills.json.tmp`.
 - **Instruction:** Validate the file using `cat research/market_skills.json.tmp | tools/validate-json.sh`.
 - **Instruction:** If valid, perform an atomic write (rename original to `.bak`, rename `.tmp` to original). If invalid, report the error and discard the changes to this file to prevent corruption.
+- **Instruction:** Confirm to the user: "✓ Added {N} skills to your market database ({X} new, {Y} updated)."
 
 ### Step 7: Summary and Next Steps
 
@@ -245,8 +280,8 @@ Would you like to:
 
 **For new scans:**
 - `research/openings/{company}-{role}.md` — New parsed job posting with categorized requirements.
-- `research/market_skills.json` — Updated with skills from this posting.
+- `research/market_skills.json` — Updated with user-confirmed skills from this posting (optional).
 
 **For re-validations:**
 - `research/openings/{company}-{role}.md` — Updated with any changed requirements, new scan date, and refreshed fit assessment.
-- `research/market_skills.json` — Updated only if new skills were added to the posting.
+- `research/market_skills.json` — Updated with user-confirmed new skills if any were added to the posting (optional).
