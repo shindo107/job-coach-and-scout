@@ -2,17 +2,18 @@
 
 ## Summary
 
-**Purpose:** Generate a voice-matched cover letter by creating and using a persistent, structured voice profile.
-**Agent:** Job Coach (Max)
+**Purpose:** Generate a voice-matched cover letter using your persistent voice profile.
+**Agent:** Job Scout (Scout)
 **Reads:**
 - `profile/corpus.json` — Resume Corpus (required).
 - `research/openings/{company}-{role}.md` — Target job details (required).
-- `profile/constraints.yaml` — For user preferences and existing voice profile.
-- `profile/writing_samples/*.md` — For initial voice analysis.
+- `profile/voice_profile.json` — Your writing voice characteristics (created by init or this workflow).
+- `profile/writing_samples/*` — For voice analysis if no profile exists.
+- `profile/constraints.yaml` — For user preferences.
 - `applications/resumes/{company}-{role}.md` — Tailored resume (preferred).
 **Creates:**
 - `applications/cover_letters/{company}-{role}.md` — Voice-matched cover letter.
-- `profile/constraints.yaml` (updated) — With the user's confirmed `voice_profile`.
+- `profile/voice_profile.json` — Created if it doesn't exist (from writing samples analysis).
 **Approximate time:** 15-25 minutes
 **Prerequisites:** job-scan completed; tailor-resume recommended.
 
@@ -29,7 +30,7 @@
 ## Context Required
 - `profile/corpus.json`
 - `research/openings/{company}-{role}.md`
-- `profile/writing_samples/`
+- `profile/voice_profile.json` (or `profile/writing_samples/` if no profile exists)
 - `profile/constraints.yaml`
 
 ---
@@ -39,8 +40,21 @@
 ### Step 1: Establish Voice Profile
 
 **1a. Check for Existing Voice Profile:**
-- **Instruction:** Check if `profile/constraints.yaml` contains a `voice_profile` block.
-- **If it exists:** "I've found your previously saved voice profile. It describes your style as {summary of profile: e.g., 'Informal, Concise, and Direct'}. Would you like me to use this profile, or should I re-analyze your writing samples?"
+- **Instruction:** Check if `profile/voice_profile.json` exists.
+- **If it exists:** Load the file and present a summary to the user:
+  ```
+  I found your voice profile (created {created_at date}).
+
+  Your style: {tone.formality}, {tone.confidence}, {tone.energy}
+  Sentence structure: {sentence_structure.length_tendency}
+  Vocabulary: {vocabulary.complexity}
+
+  Signature elements:
+  - {signature_elements.distinctive_phrases[0]}
+  - {signature_elements.distinctive_phrases[1]}
+
+  Would you like me to use this profile, or re-analyze your writing samples?
+  ```
     - If user agrees, use the existing profile and skip to Step 5.
     - If user wants to re-analyze, proceed to the next step.
 - **If it does not exist:** Proceed to the next step.
@@ -48,32 +62,93 @@
 **1b. Check for Writing Samples:**
 - **Instruction:** If no voice profile exists, check for files in `profile/writing_samples/`.
 - **If no samples:** Instruct the user to add some samples (cover letters, blog posts, professional emails) and explain why they are necessary for the voice-matching feature. Wait for user to confirm they've added files.
+- **If samples exist:** Proceed to Step 2.
 
 ### Step 2: Analyze Writing Voice (If Needed)
 
-**Instruction:** This step defines the structure of the voice analysis.
+**Instruction:** This step performs comprehensive voice analysis matching the schema from the init workflow.
 
-- **Instruction:** "Analyze the writing samples for the following specific attributes:
-    - **Formality:** (Formal, Semi-formal, Informal) - e.g., "I am writing to express my interest" vs. "I'm excited to apply".
-    - **Verbosity:** (Concise, Descriptive) - Are sentences short and to the point, or longer and more detailed?
-    - **Tone:** (e.g., 'Confident and direct', 'Collaborative and team-oriented', 'Enthusiastic and passionate').
-    - **Keywords:** A list of commonly used positive adjectives or verbs (e.g., 'drove', 'led', 'strategic', 'impactful')."
+- **Instruction:** Read all files in `profile/writing_samples/` and analyze for the following dimensions:
+
+    **Tone & Register:**
+    - Formality level: formal, professional, conversational, casual
+    - Confidence style: assertive, measured, humble, collaborative
+    - Energy: enthusiastic, calm, reserved, dynamic
+
+    **Sentence Structure:**
+    - Average sentence length tendency: short-punchy, medium, long-complex
+    - Sentence variety: consistent, varied
+    - Preferred openings: direct statements, context-setting, questions
+
+    **Vocabulary Patterns:**
+    - Complexity: simple-clear, moderate, sophisticated
+    - Technical density: minimal, moderate, heavy
+    - Distinctive words/phrases the user frequently uses
+
+    **Voice & Perspective:**
+    - Person: first-person dominant, mixed, third-person
+    - Voice: active-dominant, mixed, passive-tolerant
+    - Self-reference style: "I achieved", "Led the team", "We delivered"
+
+    **Rhetorical Patterns:**
+    - Argument structure: direct-first, building, storytelling
+    - Evidence style: metrics-heavy, example-driven, principle-based
+
+    **Signature Elements:**
+    - Extract 3-5 distinctive phrases or constructions
+    - Note consistent patterns in describing achievements
 
 ### Step 3: Present Voice Analysis for Confirmation
 
 **Instruction:**
-- Present the structured analysis from Step 2 to the user for confirmation.
-- **Example:** "Here's what I've learned about your writing style: You tend to be **Semi-formal** and **Descriptive**. Your tone is **Confident and direct**, and you often use action words like **'architected'** and **'delivered'**. Does this sound right?"
-- **CRITICAL:** Wait for user confirmation. If they disagree, ask for clarification and adjust the profile before proceeding.
+- Present a summary of the analysis to the user for confirmation.
+- **Example:**
+  ```
+  Here's what I've learned about your writing voice:
+
+  Tone: Professional, confident, dynamic
+  Style: Medium-length sentences, moderate vocabulary
+  Voice: First-person, active voice dominant
+  Rhetoric: Direct-first arguments, metrics-heavy evidence
+
+  Signature elements I noticed:
+  - "Drove X by doing Y"
+  - "Partnered with stakeholders to..."
+  - Frequent use of "delivered", "architected", "scaled"
+
+  Does this sound like you? [Yes / Adjust / Skip voice matching]
+  ```
+- **CRITICAL:** Wait for user confirmation. If they want adjustments, ask for specifics and modify the profile.
 
 ### Step 4: Save Confirmed Voice Profile
 
 **Instruction:**
-- Once the user confirms the voice profile, save it to `profile/constraints.yaml`.
-- **Read:** Load the current `profile/constraints.yaml`.
-- **Modify:** Add a new top-level block named `voice_profile` with the confirmed, structured attributes.
-- **Safe Write:** Perform a safe, validated write to update the `constraints.yaml` file.
-- **Inform:** "Great. I've saved this voice profile to your `constraints.yaml`. I'll use it for future writing tasks."
+- Once the user confirms the voice profile, save it to `profile/voice_profile.json`.
+- **Generate:** Create a JSON object following the schema from init workflow:
+  ```json
+  {
+    "schema_version": "1.0",
+    "created_at": "{ISO timestamp}",
+    "samples_analyzed": ["{filename_1}", "{filename_2}"],
+    "sample_count": {N},
+    "total_word_count": {N},
+    "tone": { ... },
+    "sentence_structure": { ... },
+    "vocabulary": { ... },
+    "voice": { ... },
+    "rhetoric": { ... },
+    "flow": { ... },
+    "signature_elements": { ... },
+    "generation_guidance": {
+      "do": ["{guideline_1}", "{guideline_2}"],
+      "avoid": ["{anti-pattern_1}", "{anti-pattern_2}"],
+      "example_sentences": ["{representative_sentence_1}", "{representative_sentence_2}"]
+    }
+  }
+  ```
+- **Validate:** Run `cat profile/voice_profile.json | tools/validate-json.sh`
+- **If validation fails:** Fix and retry.
+- **Inform:** "I've saved your voice profile to `profile/voice_profile.json`. I'll use it for this and future cover letters."
 
 ### Step 5: Load Job & Resume Context
 
@@ -85,9 +160,14 @@
 
 **Instruction:**
 - Your goal is to write a compelling narrative that sounds like the user, not a generic template.
+- **Apply Voice Profile:** Use the `generation_guidance` section from `profile/voice_profile.json`:
+  - Follow the "do" guidelines for style and phrasing
+  - Avoid patterns listed in "avoid"
+  - Match the tone, sentence structure, and vocabulary patterns
+  - Incorporate signature phrases naturally where appropriate
 - **Prioritize Narrative Fields:** When telling the story of a key accomplishment, **first** check the `corpus.json` for a `narrative_description` associated with that position (from the `linkedin-review` workflow). If it exists, use it as the primary source material.
 - **If no narrative exists:** Use the tailored resume's accomplishments as a guide. Find those accomplishments in the corpus and use their `content`, `variations`, and any other related bullets to tell the *story* behind the achievement.
-- **Apply Voice:** Combine this deep context with the confirmed `voice_profile` to generate the draft.
+- **Voice Consistency Check:** Before presenting the draft, verify it matches the voice profile's tone and style characteristics.
 
 ### Step 7: Present Draft for Feedback
 

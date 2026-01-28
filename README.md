@@ -58,7 +58,7 @@ Your corpus is *your* story. The agents help you tell it better, not make it up.
 | `/corpus-review` | Strategic review against market data |
 | `/linkedin-review` | Optimize LinkedIn profile |
 | `/industry-research` | Tier industries by fit |
-| `/company-discovery [industry]` | Find and rank target companies |
+| `/company-discovery [industry or company]` | Research a company or discover companies in an industry |
 | `/job-coach` | Load Max for resume/interview advice |
 | `/job-scout` | Load Scout for market research |
 | `/audit` | Test core workflows with sample data |
@@ -76,58 +76,64 @@ Load a persona for freeform conversation without running a specific workflow.
 
 ### Setup & Onboarding
 
-| Skill | Agent | Purpose | Outputs |
-|-------|-------|---------|---------|
-| `/init` | Both | Import resume(s), create structured corpus, set up directories | `profile/corpus.json`, `profile/voice_profile.json`, `profile/resume_template.yaml` |
-| `/scoping-interview` | Max | 10-15 question interview about job search preferences | `profile/constraints.yaml` |
+| Skill | Agent | Purpose |
+|-------|-------|---------|
+| `/init` | Both | Import resume(s), create structured corpus, set up directories |
+| `/scoping-interview` | Max | 10-15 question interview about job search preferences |
 
 **init** creates your Resume Corpus — a structured JSON database of all your experiences, accomplishments, and skills. It also:
 - Analyzes PDF resume layout to create a template for PDF generation
 - Analyzes writing samples to create a voice profile for authentic content generation
+- Seeds `research/market_skills.json` for market intelligence
 
-**scoping-interview** captures your constraints: salary requirements, location preferences, role targeting, and dealbreakers.
+**scoping-interview** captures your constraints: salary requirements, location preferences, role targeting, and dealbreakers. May also update corpus with discovered certifications or skills.
 
 ### Resume Preparation
 
-| Skill | Agent | Purpose | Outputs |
-|-------|-------|---------|---------|
-| `/job-scan` | Scout | Parse job posting into structured requirements | `research/openings/{company}-{role}.md` |
-| `/tailor-resume` | Max | Modify existing resume for specific job | `applications/resumes/{company}-{role}.md`, `.pdf` |
-| `/corpus-review` | Max | Strategic review of corpus against market demand | Updated `profile/corpus.json` |
-| `/linkedin-review` | Max | Optimize LinkedIn profile for recruiters | `profile/linkedin.md` |
+| Skill | Agent | Purpose |
+|-------|-------|---------|
+| `/job-scan` | Scout | Parse job posting into structured requirements |
+| `/tailor-resume` | Max | Modify existing resume for specific job |
+| `/corpus-review` | Both | Strategic review of corpus against market demand |
+| `/linkedin-review` | Max | Optimize LinkedIn profile for recruiters |
 
 **job-scan** extracts MUST-HAVE and NICE-TO-HAVE requirements, calculates fit score, detects duplicates, and:
 - Updates `market_skills.json` with skill demand data (with your confirmation)
 - Updates company profiles with tracked openings (if company was profiled)
 - Supports re-validation to detect posting changes over time
 
-**tailor-resume** requires a starting resume to modify (not generate from scratch). It applies corpus content, conducts gap-closing interviews, and outputs both Markdown and PDF.
+**tailor-resume** requires a starting resume to modify (not generate from scratch). It applies corpus content, conducts gap-closing interviews, and outputs both Markdown and PDF. Updates corpus with newly discovered accomplishments.
 
 **corpus-review** uses market intelligence from all your job scans to identify strategic gaps:
-- Analyzes your accomplishments against `research/market_skills.json`
-- Prioritizes high-demand skills you lack evidence for
-- Conducts targeted interviews to close gaps with real experiences
+- Scout analyzes your accomplishments against `research/market_skills.json`
+- Max probes for experiences to close high-demand skill gaps
+- Updates corpus with strengthened and new accomplishments
 
-**linkedin-review** crafts a compelling profile with keyword-rich headline, narrative About section, and optimized skills for search visibility.
+**linkedin-review** crafts a compelling profile with keyword-rich headline, narrative About section, and optimized skills for search visibility. Updates corpus with new narrative content.
 
 ### Application Materials
 
-| Skill | Agent | Purpose | Outputs |
-|-------|-------|---------|---------|
-| `/cover-letter` | Max | Voice-matched cover letter | `applications/cover_letters/{company}-{role}.md` |
+| Skill | Agent | Purpose |
+|-------|-------|---------|
+| `/cover-letter` | Scout | Voice-matched cover letter |
 
 **cover-letter** uses your voice profile (from writing samples) to generate authentic cover letters. Includes iterative refinement based on your feedback.
 
 ### Research & Discovery
 
-| Skill | Agent | Purpose | Outputs |
-|-------|-------|---------|---------|
-| `/industry-research` | Scout | Tier industries by fit with your profile | `research/industries.md` |
-| `/company-discovery` | Scout | Find and rank companies in target industry | `research/companies/{industry}/*.md` |
+| Skill | Agent | Purpose |
+|-------|-------|---------|
+| `/industry-research` | Scout | Tier industries by fit with your profile |
+| `/company-discovery` | Scout | Research a specific company or discover companies in an industry |
 
-**industry-research** analyzes where your skills are most valued and hiring trends are strongest. Produces Tier 1/2/3 rankings.
+**industry-research** analyzes where your skills are most valued and hiring trends are strongest. Produces Tier 1/2/3 rankings and creates company stubs for handoff to company-discovery.
 
-**company-discovery** creates detailed company profiles with:
+**company-discovery** operates in two modes based on your input:
+
+- **Enrichment Mode** (`/company-discovery Stripe`) — Deep-dive research on a specific company
+- **Discovery Mode** (`/company-discovery fintech`) — Find and rank companies in an industry
+
+Both modes create detailed company profiles with:
 - Fit scoring against your constraints
 - Hiring signals (funding, growth, leadership changes)
 - Tech stack and remote policy research
@@ -136,11 +142,11 @@ Load a persona for freeform conversation without running a specific workflow.
 
 ### System & Maintenance
 
-| Skill | Agent | Purpose | Outputs |
-|-------|-------|---------|---------|
-| `/audit` | — | Verify core workflows function correctly | Diagnostic report |
+| Skill | Agent | Purpose |
+|-------|-------|---------|
+| `/audit` | Both | Verify core workflows function correctly |
 
-**audit** tests the `init` → `job-scan` → `tailor-resume` pipeline with sample data.
+**audit** tests the `init` → `job-scan` → `tailor-resume` pipeline with sample data. Creates temporary files that are cleaned up afterward.
 
 ## Agent Personas
 
@@ -387,3 +393,102 @@ The **job-scan** and **tailor-resume** workflows use evidence-based thresholds:
 - **60% threshold**: 60% qualified with a referral often beats 100% qualified with none ([InHerSight](https://www.inhersight.com/blog/insight-commentary/why-60-percent-qualified-is-enough))
 - **50% threshold**: TalentWorks found 50% match gets interviews nearly as often as 90%+ ([CNBC](https://www.cnbc.com/2018/12/12/matching-half-of-a-jobs-requirements-might-still-get-you-an-interview.html))
 - **Below 50%**: Sub-60% match rates see ~90% human reviewer rejection ([Jobscan](https://www.jobscan.co/blog/what-jobscan-match-rate-should-i-aim-for/))
+
+## Workflow Reference
+
+Detailed read/write specifications for each workflow.
+
+### `/init`
+
+| Reads | Writes |
+|-------|--------|
+| User-provided resume(s) | `profile/corpus.json` |
+| User-provided writing samples (optional) | `profile/voice_profile.json` (if samples provided) |
+| | `profile/resume_template.yaml` (if PDF imported) |
+| | `profile/imports/` (directory) |
+| | `profile/writing_samples/` (directory) |
+| | `applications/resumes/` (directory) |
+| | `applications/cover_letters/` (directory) |
+| | `research/companies/` (directory) |
+| | `research/openings/` (directory) |
+| | `research/market_skills.json` (empty seed) |
+
+### `/scoping-interview`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/corpus.json` (recommended) | `profile/constraints.yaml` |
+| | `profile/corpus.json` (updated, if new info discovered) |
+
+### `/job-scan`
+
+| Reads | Writes |
+|-------|--------|
+| Job posting (URL, file, or pasted) | `research/openings/{company}-{role}.md` |
+| `profile/corpus.json` | `research/market_skills.json` (updated) |
+| `profile/constraints.yaml` | `research/companies/{industry}/{company}.md` (Tracked Openings updated) |
+| `research/market_skills.json` | |
+| `research/openings/*.md` (duplicate detection) | |
+| `research/companies/{industry}/{company}.md` | |
+
+### `/tailor-resume`
+
+| Reads | Writes |
+|-------|--------|
+| Starting resume (required) | `applications/resumes/{company}-{role}.md` |
+| `profile/corpus.json` | `applications/resumes/{company}-{role}.pdf` (if PDF tools installed) |
+| `research/openings/{company}-{role}.md` | `profile/corpus.json` (updated with new accomplishments) |
+| `profile/constraints.yaml` (optional) | |
+| `profile/resume_template.yaml` (for PDF styling) | |
+
+### `/cover-letter`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/corpus.json` | `applications/cover_letters/{company}-{role}.md` |
+| `research/openings/{company}-{role}.md` | `profile/voice_profile.json` (created if missing) |
+| `profile/voice_profile.json` (if exists) | |
+| `profile/writing_samples/*` (if no voice profile) | |
+| `profile/constraints.yaml` | |
+| `applications/resumes/{company}-{role}.md` (recommended) | |
+
+### `/corpus-review`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/corpus.json` | `profile/corpus.json` (updated) |
+| `research/market_skills.json` | `profile/corpus.json.bak` (backup) |
+| `profile/constraints.yaml` (optional) | |
+
+### `/linkedin-review`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/corpus.json` | `profile/linkedin.md` |
+| `profile/constraints.yaml` (optional) | `profile/corpus.json` (updated with narrative content) |
+| `profile/linkedin.md` (if exists) | |
+
+### `/industry-research`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/corpus.json` | `research/industries/index.md` |
+| `profile/constraints.yaml` | `research/industries/{industry}.md` (per industry) |
+| `research/industries/index.md` (if exists) | `research/companies/{industry}/{company}.md` (stubs) |
+
+### `/company-discovery`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/corpus.json` | `research/companies/{industry}/index.md` |
+| `profile/constraints.yaml` | `research/companies/{industry}/{company}.md` |
+| `research/industries/index.md` | |
+| `research/companies/{industry}/` (existing stubs) | |
+
+### `/audit`
+
+| Reads | Writes |
+|-------|--------|
+| `workflows/audit/sample_data/sample_resume.md` | `profile/audit_corpus.json` (temporary) |
+| `workflows/audit/sample_data/sample_job_description.txt` | `research/openings/audit-*.md` (temporary) |
+| | (All temporary files cleaned up at end) |
