@@ -189,7 +189,33 @@ Would you like to:
 - **Instruction:** If `profile/constraints.yaml` exists, compare the posting's details (location, seniority, etc.) against the user's preferences.
 - **Instruction:** Explicitly check for any dealbreaker violations (e.g., role is in a city on the `location_dealbreakers` list).
 - **Instruction:** If a dealbreaker is found, present a strong warning and ask the user if they wish to proceed.
-- **Instruction:** Generate a summary verdict (e.g., Strong Fit, Potential Fit, Not Recommended).
+
+**4c. Calculate Numerical Fit Score:**
+- **Instruction:** Calculate a numerical fit score (0-100%) based on requirement coverage and constraint alignment.
+- **Scoring methodology:**
+  1. **Requirement Coverage (70% of score):**
+     - For each requirement, check if evidence exists in the corpus (skills, accomplishments, positions)
+     - MUST-HAVE requirements: 10 points each (full match) or 5 points (partial match)
+     - NICE-TO-HAVE requirements: 5 points each (full match) or 2 points (partial match)
+     - Normalize to percentage: (points earned / max possible points) × 70
+  2. **Constraint Alignment (30% of score):**
+     - Location match: +10 points (or 0 if mismatch, -30 if dealbreaker)
+     - Salary range match: +10 points (or 0 if below minimum)
+     - Role type match: +5 points
+     - Remote policy match: +5 points
+     - Normalize to percentage of 30 points
+  3. **Dealbreaker override:** If any dealbreaker is triggered, cap the score at 25% maximum regardless of other factors.
+- **Instruction:** Present the score prominently:
+  ```
+  ## Fit Score: {X}%
+
+  **Breakdown:**
+  - Requirement Coverage: {Y}% (matched {N} of {M} requirements)
+  - Constraint Alignment: {Z}% ({summary of matches/mismatches})
+
+  **Verdict:** {Strong Fit (80%+) | Good Fit (60-79%) | Potential Fit (40-59%) | Stretch (20-39%) | Not Recommended (<20%)}
+  ```
+- **Instruction:** This score will be used as the baseline "Corpus Fit Score" in the `tailor-resume` workflow.
 
 ### Step 5: Save Parsed Job File
 
@@ -268,13 +294,26 @@ Would you like to:
 ### Step 7: Summary and Next Steps
 
 **Instruction:**
-- Display a summary of the analysis, leading with the most critical information.
+- Display a summary of the analysis, leading with the fit score and most critical information.
 - **For new scans:**
-  - **Example:** "Job scan complete for {Role}. **🚨 I found 3 critical skill gaps** between the job's must-haves and your resume. The full analysis, including a dealbreaker check, is saved to `research/openings/{filename}`."
+  - **Example:**
+    ```
+    Job scan complete for {Role}.
+
+    **Fit Score: {X}%** ({Verdict})
+    - {N} critical skill gaps detected
+    - {M} of {T} requirements matched
+    - Constraints: {summary}
+
+    Full analysis saved to `research/openings/{filename}`.
+    ```
 - **For re-validations:**
-  - **Example (with changes):** "Re-validation complete for {Role}. **The posting has changed**—2 new requirements added, 1 priority upgraded. Updated analysis saved. Your fit verdict changed from Good Fit → Potential Fit due to new skill gaps."
-  - **Example (no changes):** "Re-validation complete for {Role}. **No changes detected** since the last scan on {date}. Your existing analysis remains current."
-- **Instruction:** Suggest `tailor-resume` as the next logical step to address the identified gaps. Frame the suggestion around the gap analysis. "The next step is to run `tailor-resume` to address these gaps directly. Ready to start tailoring?"
+  - **Example (with changes):** "Re-validation complete for {Role}. **Fit Score: {X}%** (changed from {Y}%). The posting has changed—2 new requirements added, 1 priority upgraded."
+  - **Example (no changes):** "Re-validation complete for {Role}. **Fit Score: {X}%** — No changes detected since {date}."
+- **Instruction:** Suggest `tailor-resume` as the next logical step. Frame based on score:
+  - **High score (70%+):** "You're already a strong match. `tailor-resume` will help you highlight your best evidence and polish the presentation."
+  - **Medium score (40-69%):** "There are gaps to address. `tailor-resume` will help you find experiences to close them."
+  - **Low score (<40%):** "This is a stretch role. `tailor-resume` can help, but be prepared for a longer session to find relevant experiences."
 
 ## Output
 
