@@ -6,13 +6,17 @@ A **Claude Code workflow library** for job search preparation. Two AI personas g
 
 ## What This Is
 
-This is **NOT** a standalone application. There is no CLI, no Python code, no installation required.
-
-This is a collection of **workflow files** that Claude Code reads and executes directly. You talk to Claude Code in natural language, and it follows the workflow instructions.
+This is **NOT** a standalone application. It's a collection of **workflow files** that Claude Code reads and executes directly. You talk to Claude Code in natural language, and it follows the workflow instructions.
 
 **Requirements:**
 - Claude Code (Claude Pro subscription)
-- That's it. No dependencies, no API keys, no installation.
+- Python 3 (for validation utilities)
+
+**Optional dependencies:**
+- PyYAML (`pip install pyyaml`) — for YAML validation
+- WeasyPrint (`pip install weasyprint`) — for PDF resume generation
+
+The core workflows run without any setup. Validation and PDF generation use lightweight Python utilities in `tools/`.
 
 ## How It Works
 
