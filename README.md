@@ -56,7 +56,7 @@ Your corpus is *your* story. The agents help you tell it better, not make it up.
 |---------|--------------|
 | `/init` | Set up project, import resume(s), create corpus |
 | `/scoping-interview` | Capture salary, location, role preferences |
-| `/job-scan [url]` | Parse job posting into requirements |
+| `/job-scan [company-or-url]` | Search for jobs at a company OR parse a specific posting |
 | `/tailor-resume [company]` | Modify resume for specific job |
 | `/cover-letter [company]` | Generate voice-matched cover letter |
 | `/corpus-review` | Strategic review against market data |
@@ -96,15 +96,22 @@ Load a persona for freeform conversation without running a specific workflow.
 
 | Skill | Agent | Purpose |
 |-------|-------|---------|
-| `/job-scan` | Scout | Parse job posting into structured requirements |
+| `/job-scan` | Scout | Search for jobs at a company OR parse a specific posting |
 | `/tailor-resume` | Max | Modify existing resume for specific job |
 | `/corpus-review` | Both | Strategic review of corpus against market demand |
 | `/linkedin-review` | Max | Optimize LinkedIn profile for recruiters |
 
-**job-scan** extracts MUST-HAVE and NICE-TO-HAVE requirements, calculates fit score, detects duplicates, and:
-- Updates `market_skills.json` with skill demand data (with your confirmation)
-- Updates company profiles with tracked openings (if company was profiled)
-- Supports re-validation to detect posting changes over time
+**job-scan** operates in two modes:
+
+- **Search Mode** (`/job-scan Stripe`) — Searches for current openings, presents a list, lets you select which to scan
+- **Direct Mode** (`/job-scan [url]`) — Parses a specific job posting you provide
+
+Both modes then:
+- Extract MUST-HAVE and NICE-TO-HAVE requirements
+- Calculate fit score against your corpus and constraints
+- Update `market_skills.json` with skill demand data
+- Update company profiles with tracked openings (if profiled)
+- Support re-validation to detect posting changes
 
 **tailor-resume** requires a starting resume to modify (not generate from scratch). It applies corpus content, conducts gap-closing interviews, and outputs both Markdown and PDF. Updates corpus with newly discovered accomplishments.
 
@@ -428,12 +435,14 @@ Detailed read/write specifications for each workflow.
 
 | Reads | Writes |
 |-------|--------|
-| Job posting (URL, file, or pasted) | `research/openings/{company}-{role}.md` |
+| Company name OR job posting (URL, file, pasted) | `research/openings/{company}-{role}.md` |
 | `profile/corpus.json` | `research/market_skills.json` (updated) |
 | `profile/constraints.yaml` | `research/companies/{industry}/{company}.md` (Tracked Openings updated) |
 | `research/market_skills.json` | |
 | `research/openings/*.md` (duplicate detection) | |
 | `research/companies/{industry}/{company}.md` | |
+
+**Search Mode:** When given a company name, searches job boards for current openings and presents a selectable list before scanning.
 
 ### `/tailor-resume`
 

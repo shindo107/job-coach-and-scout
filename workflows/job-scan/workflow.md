@@ -2,10 +2,10 @@
 
 ## Summary
 
-**Purpose:** Parse a job posting into structured requirements, identify skill gaps, and update a central market skills database. Intelligently detects duplicate postings and re-validates existing analyses when the same role is scanned again.
+**Purpose:** Search for jobs at a company OR parse a specific job posting into structured requirements. Identifies skill gaps and updates the market skills database. Intelligently detects duplicate postings and re-validates existing analyses.
 **Agent:** Job Scout
 **Reads:**
-- Job posting content (URL, file path, or pasted text)
+- Job posting content (URL, file path, pasted text, OR company name for search mode)
 - `profile/corpus.json` — For skill gap analysis.
 - `profile/constraints.yaml` — For dealbreaker and preference checks.
 - `research/market_skills.json` — The central database of all skills seen in the market.
@@ -18,7 +18,7 @@
 
 ---
 
-**Trigger:** User says "scan this job posting", "analyze this job", "check if this posting changed", or provides a job posting URL/file. Also triggers on "re-scan" or "re-validate" requests for previously analyzed roles.
+**Trigger:** User says "scan this job posting", "analyze this job", "find jobs at [company]", "scan jobs at [company]", or provides a job posting URL/file. Also triggers on "re-scan" or "re-validate" requests for previously analyzed roles.
 
 ## Persona
 
@@ -26,9 +26,109 @@
 
 ## Steps
 
+### Step 0: Detect Input Mode
+
+**Instruction:** Determine whether the user is providing a specific job posting OR wants to search for jobs at a company.
+
+**Indicators of Search Mode (company name):**
+- Input is a company name without a URL or file path (e.g., "Stripe", "Google", "Acme Corp")
+- User says "find jobs at...", "search jobs at...", "scan jobs at...", "what's open at..."
+- Input doesn't contain `/`, `.com`, `.html`, `.md`, `.txt`, or other URL/file indicators
+
+**Indicators of Direct Mode (URL/file/paste):**
+- Input contains a URL (http://, https://, or recognizable domain)
+- Input is a file path (contains `/` or file extension like `.md`, `.txt`)
+- User explicitly says "scan this posting" or "analyze this job"
+- User pastes job posting content directly
+
+**If Search Mode detected:** Proceed to **Step 0a: Company Job Search**
+**If Direct Mode detected:** Proceed to **Step 1: Obtain Job Posting Content**
+
+### Step 0a: Company Job Search
+
+**Instruction:** Search for current job openings at the specified company and let the user select which to scan.
+
+**0a-i. Load User Context:**
+- **Instruction:** Load `profile/corpus.json` and `profile/constraints.yaml` to understand what roles to prioritize.
+- **Instruction:** Extract the user's target role types, seniority level, and location preferences.
+
+**0a-ii. Search for Openings:**
+- **Instruction:** Use WebSearch to find current job openings at the company.
+- **Example queries:**
+  - `"{company}" careers {role_type} jobs 2026`
+  - `"{company}" hiring {seniority} engineer`
+  - `site:linkedin.com/jobs "{company}" {role_type}`
+  - `site:greenhouse.io "{company}"` or `site:lever.co "{company}"`
+- **Instruction:** Also attempt to find the company's careers page directly:
+  - `"{company}" careers page`
+  - Try common patterns: `{company}.com/careers`, `careers.{company}.com`, `jobs.lever.co/{company}`
+
+**0a-iii. Compile and Filter Results:**
+- **Instruction:** From the search results, compile a list of current openings.
+- **Instruction:** For each opening, extract:
+  - Role title
+  - Location (or "Remote" if applicable)
+  - URL to the job posting
+  - Brief description if available
+- **Instruction:** Filter and prioritize based on user's constraints:
+  - Roles matching their target role type appear first
+  - Roles matching their seniority level are highlighted
+  - Roles violating dealbreakers (e.g., wrong location) are flagged with ⚠️
+- **Instruction:** Limit to 10 most relevant openings.
+
+**0a-iv. Present Openings to User:**
+- **Instruction:** Present the list for user selection:
+  ```
+  📋 Found {N} openings at {Company}:
+
+  1. Staff Software Engineer, Infrastructure — San Francisco (Remote eligible)
+     https://boards.greenhouse.io/stripe/jobs/12345
+  2. Senior Backend Engineer, Payments — Seattle
+     https://boards.greenhouse.io/stripe/jobs/12346
+  3. ⚠️ Engineering Manager, Platform — NYC (on-site only)
+     https://boards.greenhouse.io/stripe/jobs/12347
+  4. Software Engineer, Connect — Remote
+     https://boards.greenhouse.io/stripe/jobs/12348
+
+  ⚠️ = May conflict with your location preferences
+
+  Which would you like me to scan?
+  - Enter a number (e.g., "1")
+  - Enter multiple numbers (e.g., "1, 3, 4")
+  - Enter "all" to scan all of them
+  - Enter "none" to cancel
+  ```
+
+**0a-v. Handle User Selection:**
+- **If user selects one posting:** Set the URL as the source and proceed to **Step 1**.
+- **If user selects multiple postings:**
+  - Process each posting sequentially through Steps 1-7.
+  - Between postings, show brief progress: "Completed {N} of {M} scans. Continuing with {next role}..."
+  - At the end, show a summary table of all scans with fit scores.
+- **If user selects "all":** Process all postings as above.
+- **If user selects "none":** End the workflow gracefully.
+
+**0a-vi. If No Openings Found:**
+- **Instruction:** If the search yields no results:
+  ```
+  I couldn't find current openings at {Company} matching your profile.
+
+  This could mean:
+  - They're not actively hiring for your role type
+  - Their jobs are posted on a platform I couldn't search
+  - The company name might be spelled differently
+
+  Would you like to:
+  1. Try a different spelling or company name?
+  2. Provide a direct URL to a job posting?
+  3. Search for jobs at a different company?
+  ```
+
 ### Step 1: Obtain Job Posting Content
 
 **Instruction:** Determine the user's preferred input method and retrieve the job posting content.
+
+**Note:** If coming from Step 0a, the URL has already been determined. Proceed directly to fetching.
 
 **If user provides a URL:**
 1. Use WebFetch to retrieve the page content.
