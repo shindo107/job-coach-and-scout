@@ -45,12 +45,27 @@ TYPST_TEMPLATE_DIR = SCRIPT_DIR / "templates" / "typst"
 
 
 def check_weasyprint() -> bool:
-    """Check if WeasyPrint is available."""
+    """Check if WeasyPrint is available (as module or CLI)."""
+    # First check Python module
     try:
         import weasyprint
         return True
     except ImportError:
-        return False
+        pass
+    # Fall back to CLI check
+    return shutil.which("weasyprint") is not None
+
+
+def get_weasyprint_mode() -> str | None:
+    """Return 'module' if weasyprint is importable, 'cli' if only CLI available, None if neither."""
+    try:
+        import weasyprint
+        return "module"
+    except ImportError:
+        pass
+    if shutil.which("weasyprint"):
+        return "cli"
+    return None
 
 
 def check_typst() -> bool:
@@ -340,15 +355,102 @@ def generate_styled_html(resume_data: dict, template: dict) -> str:
     return html
 
 
-def generate_with_weasyprint(html_content: str, output_path: Path) -> bool:
-    """Generate PDF using WeasyPrint."""
+def get_pdf_page_count(pdf_path: Path) -> int:
+    """Get the number of pages in a PDF file."""
     try:
-        from weasyprint import HTML
-        HTML(string=html_content).write_pdf(str(output_path))
-        return True
-    except Exception as e:
-        print(f"Error: WeasyPrint generation failed: {e}", file=sys.stderr)
+        # Try pypdf first
+        from pypdf import PdfReader
+        reader = PdfReader(str(pdf_path))
+        return len(reader.pages)
+    except ImportError:
+        pass
+
+    # Fall back to pdfinfo command
+    try:
+        result = subprocess.run(
+            ['pdfinfo', str(pdf_path)],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                if line.startswith('Pages:'):
+                    return int(line.split(':')[1].strip())
+    except FileNotFoundError:
+        pass
+
+    # Can't determine page count
+    return -1
+
+
+def generate_with_weasyprint(html_content: str, output_path: Path, max_pages: int = 0) -> bool:
+    """Generate PDF using WeasyPrint (module or CLI). Optionally auto-scale to fit max_pages."""
+    mode = get_weasyprint_mode()
+    if not mode:
+        print("Error: WeasyPrint not available", file=sys.stderr)
         return False
+
+    # Font size scaling factors to try (start at 100%, decrease)
+    scale_factors = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70] if max_pages > 0 else [1.0]
+
+    for scale in scale_factors:
+        # Inject scale factor into HTML
+        if scale != 1.0:
+            scaled_html = html_content.replace(
+                'body {',
+                f'body {{ font-size: calc(var(--body-size, 11pt) * {scale});'
+            ).replace(
+                'font-size: calc(var(--body-size, 11pt) * {scale});',
+                f'font-size: calc(var(--body-size, 11pt) * {scale}); /* scaled */'
+            )
+            # Also scale line-height slightly
+            scaled_html = scaled_html.replace(
+                'line-height: 1.4;',
+                f'line-height: {max(1.2, 1.4 * scale)};'
+            )
+        else:
+            scaled_html = html_content
+
+        try:
+            if mode == "module":
+                from weasyprint import HTML
+                HTML(string=scaled_html).write_pdf(str(output_path))
+            else:
+                # CLI mode - write HTML to temp file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+                    f.write(scaled_html)
+                    temp_html = f.name
+
+                result = subprocess.run(
+                    [shutil.which("weasyprint"), temp_html, str(output_path)],
+                    capture_output=True,
+                    text=True
+                )
+                os.unlink(temp_html)
+
+                if result.returncode != 0:
+                    print(f"Error: WeasyPrint CLI failed: {result.stderr}", file=sys.stderr)
+                    return False
+
+            # Check page count if max_pages specified
+            if max_pages > 0:
+                page_count = get_pdf_page_count(output_path)
+                if page_count > 0 and page_count <= max_pages:
+                    print(f"PDF fits in {page_count} page(s) at {int(scale * 100)}% scale")
+                    return True
+                elif page_count > 0:
+                    print(f"PDF has {page_count} pages at {int(scale * 100)}% scale, trying smaller...")
+                    continue
+
+            return True
+
+        except Exception as e:
+            print(f"Error: WeasyPrint generation failed: {e}", file=sys.stderr)
+            return False
+
+    # Exhausted all scale factors
+    print(f"Warning: Could not fit resume in {max_pages} pages. Using smallest scale.", file=sys.stderr)
+    return True
 
 
 def generate_typst_source(resume_data: dict, template: dict) -> str:
@@ -464,6 +566,12 @@ Examples:
         default="auto",
         help="PDF engine to use (default: auto-detect)"
     )
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=0,
+        help="Maximum number of pages. Auto-scales font to fit. (default: 0 = no limit)"
+    )
 
     args = parser.parse_args()
 
@@ -509,7 +617,7 @@ Examples:
     success = False
     if engine == "weasyprint":
         html_content = generate_styled_html(resume_data, template)
-        success = generate_with_weasyprint(html_content, output_path)
+        success = generate_with_weasyprint(html_content, output_path, max_pages=args.max_pages)
     elif engine == "typst":
         success = generate_with_typst(resume_data, template, output_path)
 
