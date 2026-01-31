@@ -2,7 +2,7 @@
 
 ![Job Coach and Scout](jcas_final.jpg)
 
-A **Claude Code workflow library** for job search preparation. Two AI personas guide you through resume tailoring, cover letter generation, and market research via interview-driven conversations.
+A **Claude Code workflow library** for job search preparation. Three AI personas guide you through resume tailoring, cover letter generation, and market research via interview-driven conversations.
 
 ## What This Is
 
@@ -30,18 +30,19 @@ Each application makes the system smarter: new experiences extracted during tail
 
 ## The Agents
 
-Two AI personas guide your job search. Each workflow automatically loads the appropriate persona.
+Three AI personas guide your job search. Each workflow automatically loads the appropriate persona.
 
 | Agent | Role | Persona File |
 |-------|------|--------------|
 | **Max** (Job Coach) | Resume tailoring, interview prep, adversarial feedback | `agents/job-coach.md` |
 | **Scout** (Job Scout) | Market research, company discovery, job scanning | `agents/job-scout.md` |
+| **Voice** (Your Voice) | First-person writing in your authentic style | `agents/voice.md` (generated) |
 
-**Max** is a veteran recruiter who challenges vague claims and pushes for specifics. **Scout** is a market intelligence analyst who finds opportunities matching your constraints.
+**Max** is a veteran recruiter who challenges vague claims and pushes for specifics. **Scout** is a market intelligence analyst who finds opportunities matching your constraints. **Voice** is dynamically generated from your writing samples to write cover letters and LinkedIn content that sound authentically like you.
 
 ### Integrity Policy
 
-**Max and Scout will never fabricate information about you.**
+**All agents will never fabricate information about you.**
 
 - They extract and position your *real* experiences — they don't invent them
 - Every new entry to your corpus is read back for your confirmation: *"Is this accurate and complete?"*
@@ -56,6 +57,7 @@ Your corpus is *your* story. The agents help you tell it better, not make it up.
 |---------|--------------|
 | `/init` | Set up project, import resume(s), create corpus |
 | `/scoping-interview` | Capture salary, location, role preferences |
+| `/create-voice` | Analyze writing samples, create your Voice Agent |
 | `/job-scan [company-or-url]` | Search for jobs at a company OR parse a specific posting |
 | `/tailor-resume [company]` | Modify resume for specific job |
 | `/cover-letter [company]` | Generate voice-matched cover letter |
@@ -84,13 +86,18 @@ Load a persona for freeform conversation without running a specific workflow.
 |-------|-------|---------|
 | `/init` | Both | Import resume(s), create structured corpus, set up directories |
 | `/scoping-interview` | Max | 10-15 question interview about job search preferences |
+| `/create-voice` | Scout | Analyze writing samples and generate your Voice Agent |
 
 **init** creates your Resume Corpus — a structured JSON database of all your experiences, accomplishments, and skills. It also:
 - Analyzes PDF resume layout to create a template for PDF generation
-- Analyzes writing samples to create a voice profile for authentic content generation
+- Sets up `profile/writing_samples/` directory for voice analysis
 - Seeds `research/market_skills.json` for market intelligence
 
 **scoping-interview** captures your constraints: salary requirements, location preferences, role targeting, and dealbreakers. May also update corpus with discovered certifications or skills.
+
+**create-voice** analyzes your writing samples (cover letters, emails, blog posts) across 7 dimensions to capture your authentic voice. Creates:
+- `profile/voice_profile.json` — structured analysis of your writing style
+- `agents/voice.md` — your personalized Voice Agent that writes like you
 
 ### Resume Preparation
 
@@ -99,7 +106,7 @@ Load a persona for freeform conversation without running a specific workflow.
 | `/job-scan` | Scout | Search for jobs at a company OR parse a specific posting |
 | `/tailor-resume` | Max | Modify existing resume for specific job |
 | `/corpus-review` | Both | Strategic review of corpus against market demand |
-| `/linkedin-review` | Max | Optimize LinkedIn profile for recruiters |
+| `/linkedin-review` | Voice + Max | Optimize LinkedIn profile for recruiters |
 
 **job-scan** operates in two modes:
 
@@ -120,15 +127,19 @@ Both modes then:
 - Max probes for experiences to close high-demand skill gaps
 - Updates corpus with strengthened and new accomplishments
 
-**linkedin-review** crafts a compelling profile with keyword-rich headline, narrative About section, and optimized skills for search visibility. Updates corpus with new narrative content.
+**linkedin-review** crafts a compelling profile with keyword-rich headline, narrative About section, and optimized skills for search visibility. Voice Agent writes the About section and experience narratives in your authentic style; Max handles headline strategy and skills optimization. Updates corpus with new narrative content.
 
 ### Application Materials
 
 | Skill | Agent | Purpose |
 |-------|-------|---------|
-| `/cover-letter` | Scout | Voice-matched cover letter |
+| `/cover-letter` | Voice + Max | Voice-matched cover letter with optional positioning review |
 
-**cover-letter** uses your voice profile (from writing samples) to generate authentic cover letters. Includes iterative refinement based on your feedback.
+**cover-letter** uses your Voice Agent to write cover letters that sound authentically like you. The workflow:
+- Loads your Voice Agent (or creates one from writing samples if needed)
+- Writes the first draft in your authentic voice
+- Optionally has Max review positioning from a hiring manager's perspective
+- Iterates based on your feedback
 
 ### Research & Discovery
 
@@ -192,6 +203,20 @@ A strategic market intelligence analyst. Scout tracks hiring trends, evaluates c
 5. Industry trends inform strategy
 6. Research compounds
 
+### Voice — Your Authentic Voice
+
+A dynamically generated persona that embodies *your* writing style. Created by analyzing your writing samples, Voice writes first-person content that's indistinguishable from your own words.
+
+**Communication style:** Mirrors your natural voice — your tone, your sentence structure, your vocabulary, your signature phrases.
+
+**How it works:**
+1. Run `/create-voice` with writing samples in `profile/writing_samples/`
+2. Scout analyzes your writing across 7 dimensions (tone, structure, vocabulary, etc.)
+3. Creates `agents/voice.md` — your personalized Voice Agent
+4. Cover letters and LinkedIn narratives now sound like *you* wrote them
+
+**Why a separate agent?** Max's adversarial tone shouldn't leak into your cover letters. Voice solves the "personality bleed" problem by keeping first-person writing separate from coaching and feedback.
+
 ## System Overview
 
 ```mermaid
@@ -200,7 +225,7 @@ flowchart TB
     classDef maxStyle fill:#ff6b35,stroke:#ff6b35,color:#fff
     classDef scoutStyle fill:#00b4d8,stroke:#00b4d8,color:#fff
     classDef voiceStyle fill:#9b59b6,stroke:#9b59b6,color:#fff
-    classDef dualStyle fill:#7b4b94,stroke:#7b4b94,color:#fff
+    classDef dualStyle fill:#e84393,stroke:#e84393,color:#fff
     classDef coreData fill:#ffd166,stroke:#ff6b35,color:#000
     classDef intermediateData fill:#90be6d,stroke:#43aa8b,color:#000
     classDef outputData fill:#f8961e,stroke:#f3722c,color:#000
@@ -208,15 +233,15 @@ flowchart TB
     %% ===== ENTRY =====
     USER([User])
 
-    %% ===== SETUP LANE (Purple) =====
-    subgraph SETUP["🟣 SETUP"]
+    %% ===== SETUP LANE (Blue - Dual Agent) =====
+    subgraph SETUP["🔴 SETUP — MAX + SCOUT"]
         init[init]
         init ==> scoping[scoping-interview]
         scoping -.->|optional| create_voice[create-voice]
     end
 
-    %% ===== SYSTEM (Standalone) =====
-    subgraph SYSTEM["🟣 SYSTEM"]
+    %% ===== SYSTEM (Standalone - Dual Agent) =====
+    subgraph SYSTEM["🔴 SYSTEM — MAX + SCOUT"]
         audit[audit]
     end
 
@@ -249,7 +274,7 @@ flowchart TB
         subgraph MAX_APPLY["🟠 MAX"]
             tailor[tailor-resume]
         end
-        subgraph VOICE_APPLY["🟣 VOICE"]
+        subgraph VOICE_APPLY["🟣 USER'S VOICE + MAX"]
             cover[cover-letter]
         end
     end
@@ -262,10 +287,10 @@ flowchart TB
 
     %% ===== STANDALONE LANE =====
     subgraph STANDALONE["STANDALONE"]
-        subgraph MAX_STANDALONE["🟠 MAX"]
+        subgraph DUAL_STANDALONE["🔴 MAX + SCOUT"]
             corpus_rev[corpus-review]
         end
-        subgraph VOICE_STANDALONE["🟣 VOICE + MAX"]
+        subgraph VOICE_STANDALONE["🟣 USER'S VOICE + MAX"]
             linkedin[linkedin-review]
         end
     end
@@ -324,14 +349,27 @@ flowchart TB
     STANDALONE_OUT ==> OUTPUT
 
     %% ===== APPLY STYLES =====
-    class tailor,corpus_rev maxStyle
-    class init,scoping,audit dualStyle
+    class tailor maxStyle
+    class init,scoping,audit,corpus_rev dualStyle
     class industry,company,jobscan scoutStyle
     class cover,linkedin,create_voice voiceStyle
     class CORPUS,constraints,voice_profile,voice_agent,resume_template coreData
     class market_skills,industries,companies,openings intermediateData
     class resumes,coverletters,linkedinmd outputData
 ```
+
+| Element | Meaning |
+|---------|---------|
+| 🟠 Orange | MAX workflows (Resume Tailoring & Feedback) |
+| 🔵 Teal | SCOUT workflows (Market Research & Discovery) |
+| 🔴 Pink | MAX + SCOUT workflows (Dual-agent collaboration) |
+| 🟣 Purple | USER'S VOICE workflows (Authentic Writing Style) |
+| 🟡 Yellow | Core Data — foundational profile (corpus, constraints, voice, template) |
+| 🟢 Green | Intermediate Data — research artifacts (industries, companies, openings) |
+| 🟧 Orange | Outputs — final deliverables (resumes, cover letters, LinkedIn) |
+| **Thick arrows** | Workflow handoffs (sequence between workflows) |
+| Solid arrows | Data writes (workflow creates/updates data) |
+| Dashed arrows | Data reads or optional/conditional flows |
 
 The diagram shows how workflows interact with your **Resume Corpus** (the central knowledge base) and **constraints.yaml** (your job search preferences):
 
@@ -350,11 +388,14 @@ job-coach-and-scout/
 │
 ├── agents/                      # Agent persona definitions
 │   ├── job-coach.md             # Max's persona, principles, behaviors
-│   └── job-scout.md             # Scout's persona, principles, behaviors
+│   ├── job-scout.md             # Scout's persona, principles, behaviors
+│   ├── voice-template.md        # Template for generating Voice Agent
+│   └── voice.md                 # Your Voice Agent (generated by /create-voice)
 │
 ├── workflows/                   # Workflow definitions (executed by skills)
 │   ├── init/                    # Project initialization
 │   ├── scoping-interview/       # Preference capture
+│   ├── create-voice/            # Voice Agent creation
 │   ├── job-scan/                # Job posting analysis
 │   ├── tailor-resume/           # Resume tailoring
 │   ├── cover-letter/            # Cover letter generation
@@ -472,6 +513,7 @@ This project uses **flat JSON/YAML files** rather than a database. This is inten
 |------|---------|--------|
 | `profile/corpus.json` | All your experiences, accomplishments, skills | JSON |
 | `profile/voice_profile.json` | Your writing voice characteristics | JSON |
+| `agents/voice.md` | Your personalized Voice Agent | Markdown |
 | `profile/resume_template.yaml` | PDF styling from your original resume | YAML |
 | `profile/constraints.yaml` | Job search preferences and dealbreakers | YAML |
 | `research/market_skills.json` | Aggregated skill demand from job scans | JSON |
@@ -496,7 +538,6 @@ This project uses **flat JSON/YAML files** rather than a database. This is inten
    - Ask for privacy agreement before processing personal data
    - Parse your resume(s) into the structured Resume Corpus
    - Analyze PDF layout for resume template (if PDF provided)
-   - Analyze writing samples for voice profile (if provided)
 
 2. **Complete the scoping interview:**
    ```
@@ -504,12 +545,18 @@ This project uses **flat JSON/YAML files** rather than a database. This is inten
    ```
    This captures salary, location, role preferences, and dealbreakers.
 
-3. **Start applying:**
+3. **Create your Voice Agent (optional but recommended):**
+   ```
+   /create-voice
+   ```
+   Add writing samples (cover letters, emails, blog posts) to `profile/writing_samples/`, then run this workflow. Your Voice Agent will write cover letters and LinkedIn content that sound like you.
+
+4. **Start applying:**
    - Scan a job posting: `/job-scan [url]`
    - Tailor your resume: `/tailor-resume [company]`
    - Generate a cover letter: `/cover-letter [company]`
 
-4. **Or research first:**
+5. **Or research first:**
    - Analyze industries: `/industry-research`
    - Discover companies: `/company-discovery [industry]`
    - Then scan postings from target companies
@@ -555,7 +602,6 @@ Detailed read/write specifications for each workflow.
 | Reads | Writes |
 |-------|--------|
 | User-provided resume(s) | `profile/corpus.json` |
-| User-provided writing samples (optional) | `profile/voice_profile.json` (if samples provided) |
 | | `profile/resume_template.yaml` (if PDF imported) |
 | | `profile/imports/` (directory) |
 | | `profile/writing_samples/` (directory) |
@@ -571,6 +617,14 @@ Detailed read/write specifications for each workflow.
 |-------|--------|
 | `profile/corpus.json` (recommended) | `profile/constraints.yaml` |
 | | `profile/corpus.json` (updated, if new info discovered) |
+
+### `/create-voice`
+
+| Reads | Writes |
+|-------|--------|
+| `profile/writing_samples/*` | `profile/voice_profile.json` |
+| `profile/constraints.yaml` (for user name) | `agents/voice.md` |
+| `agents/voice-template.md` | |
 
 ### `/job-scan`
 
@@ -599,12 +653,15 @@ Detailed read/write specifications for each workflow.
 
 | Reads | Writes |
 |-------|--------|
-| `profile/corpus.json` | `applications/cover_letters/{company}-{role}.md` |
-| `research/openings/{company}-{role}.md` | `profile/voice_profile.json` (created if missing) |
-| `profile/voice_profile.json` (if exists) | |
-| `profile/writing_samples/*` (if no voice profile) | |
+| `agents/voice.md` (preferred) | `applications/cover_letters/{company}-{role}.md` |
+| `profile/voice_profile.json` (fallback) | `agents/voice.md` (generated if missing) |
+| `profile/writing_samples/*` (last resort) | `profile/voice_profile.json` (created if missing) |
+| `profile/corpus.json` | |
+| `research/openings/{company}-{role}.md` | |
 | `profile/constraints.yaml` | |
 | `applications/resumes/{company}-{role}.md` (recommended) | |
+
+**Fallback chain:** Voice Agent → voice_profile.json → writing samples → proceed without voice matching
 
 ### `/corpus-review`
 
@@ -619,8 +676,12 @@ Detailed read/write specifications for each workflow.
 | Reads | Writes |
 |-------|--------|
 | `profile/corpus.json` | `profile/linkedin.md` |
-| `profile/constraints.yaml` (optional) | `profile/corpus.json` (updated with narrative content) |
+| `agents/voice.md` (for About/narratives) | `profile/corpus.json` (updated with narrative content) |
+| `profile/voice_profile.json` (fallback) | |
+| `profile/constraints.yaml` (optional) | |
 | `profile/linkedin.md` (if exists) | |
+
+**Agent roles:** Voice Agent writes About section and experience narratives; Max handles headline, skills, and positioning review.
 
 ### `/industry-research`
 

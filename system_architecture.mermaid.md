@@ -82,7 +82,7 @@ flowchart TB
     classDef maxStyle fill:#ff6b35,stroke:#ff6b35,color:#fff
     classDef scoutStyle fill:#00b4d8,stroke:#00b4d8,color:#fff
     classDef voiceStyle fill:#9b59b6,stroke:#9b59b6,color:#fff
-    classDef dualStyle fill:#7b4b94,stroke:#7b4b94,color:#fff
+    classDef dualStyle fill:#e84393,stroke:#e84393,color:#fff
     classDef coreData fill:#ffd166,stroke:#ff6b35,color:#000
     classDef intermediateData fill:#90be6d,stroke:#43aa8b,color:#000
     classDef outputData fill:#f8961e,stroke:#f3722c,color:#000
@@ -90,15 +90,15 @@ flowchart TB
     %% ===== ENTRY =====
     USER([User])
 
-    %% ===== SETUP LANE (Purple) =====
-    subgraph SETUP["🟣 SETUP"]
+    %% ===== SETUP LANE (Blue - Dual Agent) =====
+    subgraph SETUP["🔴 SETUP — MAX + SCOUT"]
         init[init]
         init ==> scoping[scoping-interview]
         scoping -.->|optional| create_voice[create-voice]
     end
 
-    %% ===== SYSTEM (Standalone) =====
-    subgraph SYSTEM["🟣 SYSTEM"]
+    %% ===== SYSTEM (Standalone - Dual Agent) =====
+    subgraph SYSTEM["🔴 SYSTEM — MAX + SCOUT"]
         audit[audit]
     end
 
@@ -131,7 +131,7 @@ flowchart TB
         subgraph MAX_APPLY["🟠 MAX"]
             tailor[tailor-resume]
         end
-        subgraph VOICE_APPLY["🟣 VOICE"]
+        subgraph VOICE_APPLY["🟣 USER'S VOICE + MAX"]
             cover[cover-letter]
         end
     end
@@ -144,10 +144,10 @@ flowchart TB
 
     %% ===== STANDALONE LANE =====
     subgraph STANDALONE["STANDALONE"]
-        subgraph MAX_STANDALONE["🟠 MAX"]
+        subgraph DUAL_STANDALONE["🔴 MAX + SCOUT"]
             corpus_rev[corpus-review]
         end
-        subgraph VOICE_STANDALONE["🟣 VOICE + MAX"]
+        subgraph VOICE_STANDALONE["🟣 USER'S VOICE + MAX"]
             linkedin[linkedin-review]
         end
     end
@@ -206,8 +206,8 @@ flowchart TB
     STANDALONE_OUT ==> OUTPUT
 
     %% ===== APPLY STYLES =====
-    class tailor,corpus_rev maxStyle
-    class init,scoping,audit dualStyle
+    class tailor maxStyle
+    class init,scoping,audit,corpus_rev dualStyle
     class industry,company,jobscan scoutStyle
     class cover,linkedin,create_voice voiceStyle
     class CORPUS,constraints,voice_profile,voice_agent,resume_template coreData
@@ -223,7 +223,8 @@ flowchart TB
 |---------|---------|
 | 🟠 Orange | MAX workflows (Resume Tailoring & Feedback) |
 | 🔵 Teal | SCOUT workflows (Market Research & Discovery) |
-| 🟣 Purple | VOICE workflows (Authentic Writing Style) or SETUP (Dual-agent) |
+| 🔴 Pink | MAX + SCOUT workflows (Dual-agent collaboration) |
+| 🟣 Purple | USER'S VOICE workflows (Authentic Writing Style) |
 | 🟡 Yellow | Core Data — foundational profile (corpus, constraints, voice, template) |
 | 🟢 Green | Intermediate Data — research artifacts (industries, companies, openings) |
 | 🟧 Orange | Outputs — final deliverables (resumes, cover letters, LinkedIn) |
