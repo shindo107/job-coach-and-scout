@@ -2,16 +2,19 @@
 
 ## Summary
 
-**Purpose:** Craft a compelling LinkedIn profile through adversarial review and collaborative revision, enriching your core Resume Corpus.
-**Agent:** Job Coach (Max)
+**Purpose:** Craft a compelling LinkedIn profile through collaborative revision, enriching your core Resume Corpus.
+**Agent:** Voice Agent (About, narratives), Max (headline, skills, positioning review)
+**Phase:** standalone
 **Reads:**
 - `profile/corpus.json` — Your structured Resume Corpus (required)
-- `profile/constraints.yaml` — For target roles and feedback style (optional)
-- `profile/linkedin.md` — Existing LinkedIn profile if available (optional)
+- `profile/constraints.yaml` (optional) — For target roles and feedback style
+- `profile/linkedin.md` (optional) — Existing LinkedIn profile if available
+- `agents/voice.md` (optional) — Your Voice Agent for About/narratives
+- `profile/voice_profile.json` (optional) — Fallback for voice matching
 **Creates:**
-- `profile/linkedin.md` — Your optimized LinkedIn profile content (for convenience)
-- `profile/corpus.json` — **Updated** with new narrative content (headline, about, experience)
-**Approximate time:** 30-45 minutes (interactive review)
+- `profile/linkedin.md` — Your optimized LinkedIn profile content
+**Updates:**
+- `profile/corpus.json` — Updated with new narrative content (headline, about, experience)
 **Prerequisites:** init completed (corpus created)
 
 ---
@@ -20,15 +23,29 @@
 
 ## Persona
 
-**Load and adopt:** `agents/job-coach.md`
+**Primary agents:**
+- `agents/job-coach.md` (Max) — Headline, skills selection, positioning review
+- `agents/voice.md` (Voice Agent) — About section, experience narratives
 
-Read the full persona file and embody Max for this workflow. Your goal is to act as an expert, skeptical recruiter to help the user craft a profile that stands out. Your dialogue should be guided by your persona, not a rigid script.
+**Agent responsibilities:**
+| Section | Agent | Rationale |
+|---------|-------|-----------|
+| Headline | Max | Positioning and keyword strategy |
+| About | Voice Agent | First-person writing in user's authentic voice |
+| Experience Narratives | Voice Agent | Storytelling in user's authentic voice |
+| Skills Selection | Max | Strategic keyword optimization |
+| Industry Selection | Max | Positioning strategy |
+| Final Review | Max | Hiring manager perspective |
+
+Read both persona files. Start with Max for the introduction and headline work, then switch to the Voice Agent for About and experience narratives.
 
 ## Context Required
 
 Before starting, load these files:
 - `profile/corpus.json` — Your Resume Corpus (required)
 - `profile/constraints.yaml` — For target roles and preferences (optional)
+- `agents/voice.md` — Your Voice Agent (for About and narratives)
+- `profile/voice_profile.json` — Fallback if Voice Agent doesn't exist
 
 If available, also load:
 - `profile/linkedin.md` — Existing LinkedIn profile to review, or the `profile.headline` and `profile.about` fields from the corpus itself.
@@ -39,6 +56,19 @@ I need your Resume Corpus to build your LinkedIn profile. I couldn't find `profi
 
 Would you like to run the init workflow to create it?
 ```
+
+**If no Voice Agent or voice profile:**
+```
+I don't have a Voice Agent to write your About section and experience narratives.
+
+Options:
+1. Create Voice Agent first — Run /create-voice to analyze your writing samples
+2. Proceed without — Max will write everything (may not match your personal voice)
+
+Which option? [1/2]
+```
+- If option 1: End workflow, suggest /create-voice
+- If option 2: Continue with Max only (note this in output)
 
 **If no existing profile:**
 ```
@@ -82,43 +112,71 @@ The headline appears everywhere. It must instantly communicate value.
 4.  **- [ ] Finalize headline:**
     -   **Instruction:** Once the user agrees on a headline, confirm the character count and state the final version. Keep this finalized headline in memory for the corpus update.
 
-### Step 3: About Section Review
+### Step 3: About Section Review (Voice Agent)
 
-The About section is the elevator pitch. It should hook the reader, establish credibility, and be keyword-rich.
+The About section is the elevator pitch. It should hook the reader, establish credibility, and be keyword-rich — all in the user's authentic voice.
+
+**Switch to Voice Agent persona:** Load and adopt `agents/voice.md` for this step.
 
 1.  **- [ ] Analyze current About (if exists):**
-    -   **Instruction:** Review the current About section. Evaluate its hook, career narrative, use of quantified achievements, and keyword alignment with target roles.
-2.  **- [ ] Draft About section:**
-    -   **Instruction:** Using the corpus, draft a compelling About section. It should open with a strong hook, tell a coherent career story with quantified achievements, include a bulleted list of key skills/keywords, and stay within character limits.
+    -   **Instruction:** Review the current About section. Evaluate its hook, career narrative, use of quantified achievements, and whether it sounds like the user.
+2.  **- [ ] Draft About section as Voice Agent:**
+    -   **Instruction:** You ARE the Voice Agent now. Write the About section as the user would write it.
+    -   Apply voice characteristics from `agents/voice.md`:
+      - Match tone (formality, confidence, energy)
+      - Use signature phrases naturally
+      - Follow the user's typical sentence structure
+      - Apply their storytelling approach
+    -   Content should: open with a strong hook, tell a coherent career story with quantified achievements, include key skills/keywords, and stay within 2,600 characters.
 3.  **- [ ] Interactive refinement:**
-    -   **Instruction:** Present the draft and ask for feedback. Be prepared to adjust tone, add specifics, or restructure based on user input. Iterate until the user confirms the content is accurate and reflects their voice.
-4.  **- [ ] Finalize About:**
+    -   **Instruction:** Present the draft and ask: "Does this sound like you? What would you change?"
+    -   Be prepared to adjust while staying true to the Voice Agent characteristics.
+    -   Iterate until the user confirms it sounds authentically like them.
+4.  **- [ ] Max positioning review (optional):**
+    -   **Instruction:** Ask if user wants Max to review positioning:
+    ```
+    Would you like Max to review the positioning from a recruiter's perspective?
+    (Your voice stays intact — Max will critique strategy, not rewrite.) [Yes/No]
+    ```
+    -   If yes: Switch to Max, provide positioning feedback, switch back to Voice Agent for revisions.
+5.  **- [ ] Finalize About:**
     -   **Instruction:** Confirm the character count and state that the section is finalized. Keep this final version in memory for the corpus update.
 
-### Step 4: Experience Sections Review
+### Step 4: Experience Sections Review (Voice Agent)
 
-LinkedIn experience sections are for narrative storytelling, not just resume bullets.
+LinkedIn experience sections are for narrative storytelling, not just resume bullets. These narratives should sound like the user telling their own career story.
+
+**Continue as Voice Agent:** Stay in `agents/voice.md` persona for this step.
 
 1.  **- [ ] Draft narrative descriptions for each position:**
-    -   **Instruction:** For each relevant position in the corpus, draft a 2-4 paragraph narrative description. This should tell the story of the user's role, responsibilities, and key achievements. It should not just be a list of bullets.
+    -   **Instruction:** You ARE the Voice Agent. For each relevant position in the corpus, draft a 2-4 paragraph narrative description in the user's authentic voice.
+    -   Apply `signature_elements.achievement_pattern` from the voice profile
+    -   Use the user's storytelling style
+    -   Match their sentence structure and vocabulary patterns
+    -   This should tell the story of the role, not just list bullets.
 2.  **- [ ] Review each position with the user:**
-    -   **Instruction:** Present the drafted narrative for each role. Ask the user if it accurately captures the story of their time there. Probe for missing details or achievements, especially for roles that seem underdeveloped in the corpus.
+    -   **Instruction:** Present the drafted narrative for each role. Ask: "Does this capture your story at {company}? Does it sound like you?"
+    -   Probe for missing details or achievements, especially for underdeveloped roles.
     -   **CRITICAL:** Only add details the user confirms. Never fabricate.
 3.  **- [ ] Finalize each position's narrative:**
-    -   **Instruction:** Once the user approves the narrative for a position, confirm its character count. Keep the finalized narrative in memory, mapping it to the corresponding `position_id` from the corpus.
+    -   **Instruction:** Once the user approves the narrative, confirm its character count. Keep the finalized narrative in memory, mapping it to the corresponding `position_id` from the corpus.
 
-### Step 5: Skills Selection
+### Step 5: Skills Selection (Max)
 
 LinkedIn Top Skills are critical for search rankings.
+
+**Switch to Max persona:** Load and adopt `agents/job-coach.md` for this step.
 
 1.  **- [ ] Recommend Top 5 Skills:**
     -   **Instruction:** Analyze the skills from the corpus and cross-reference them with target role requirements. Recommend the 5 most impactful skills for search visibility, explaining your reasoning for each.
 2.  **- [ ] Finalize Top 5:**
     -   **Instruction:** Ask the user to confirm or suggest alternatives. Finalize the list based on their feedback.
 
-### Step 6: Industry Selection
+### Step 6: Industry Selection (Max)
 
 The Industry field impacts discovery.
+
+**Continue as Max:** Stay in `agents/job-coach.md` persona for this step.
 
 1.  **- [ ] Recommend Industry:**
     -   **Instruction:** Based on the user's target roles, recommend an industry from LinkedIn's official taxonomy. Explain that it should align with where they want to *go*, not necessarily where they've *been*.

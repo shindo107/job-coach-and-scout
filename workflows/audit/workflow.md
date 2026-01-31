@@ -1,7 +1,19 @@
 # System Audit
 
+## Summary
+
+**Purpose:** Verify that the core `init` -> `job-scan` -> `tailor-resume` pipeline is functioning as expected after any changes.
 **Agent:** Job Coach (Max) & Job Scout
-**Purpose:** To verify that the core `init` -> `job-scan` -> `tailor-resume` pipeline is functioning as expected after any changes.
+**Phase:** system
+**Reads:**
+- `workflows/audit/sample_data/sample_resume.md` — Sample resume for testing
+- `workflows/audit/sample_data/sample_job_description.txt` — Sample job posting for testing
+**Creates:** None (temporary files are cleaned up)
+**Updates:** None
+**Prerequisites:** None
+
+---
+
 **Trigger:** User says "run a system audit" or "verify the workflows".
 
 ## Persona
@@ -10,13 +22,11 @@
 
 ---
 
-## Summary
+## Details
 
 This workflow provides a consistent way to test the core functionality of the Job Coach & Scout system. It uses a predefined sample resume and job description to run through the main pipeline and asks for confirmation that the output is correct.
 
 **This is a read-only, diagnostic workflow.** It will create temporary files but will guide you to clean them up at the end.
-
-**Approximate time:** 10-15 minutes
 
 ---
 

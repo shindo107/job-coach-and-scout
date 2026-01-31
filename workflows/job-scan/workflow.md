@@ -4,17 +4,20 @@
 
 **Purpose:** Search for jobs at a company OR parse a specific job posting into structured requirements. Identifies skill gaps and updates the market skills database. Intelligently detects duplicate postings and re-validates existing analyses.
 **Agent:** Job Scout
+**Phase:** research
 **Reads:**
 - Job posting content (URL, file path, pasted text, OR company name for search mode)
-- `profile/corpus.json` — For skill gap analysis.
-- `profile/constraints.yaml` — For dealbreaker and preference checks.
-- `research/market_skills.json` — The central database of all skills seen in the market.
-- `research/openings/*.md` — Existing analyses for duplicate detection.
-- `research/companies/{industry}/{company}.md` — Company profile for cross-referencing openings.
-**Creates/Updates:**
-- `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements (created new or re-validated).
-- `research/market_skills.json` (updated) — Enriched with the skills from this job posting.
-**Prerequisites:** `corpus.json` and `constraints.yaml` are highly recommended for full functionality.
+- `profile/corpus.json` — For skill gap analysis
+- `profile/constraints.yaml` — For dealbreaker and preference checks
+- `research/market_skills.json` — The central database of all skills seen in the market
+- `research/openings/*.md` (optional) — Existing analyses for duplicate detection
+- `research/companies/{industry}/{company}.md` (optional) — Company profile for cross-referencing openings
+**Creates:**
+- `research/openings/{company}-{role}.md` — Parsed job posting with categorized requirements
+**Updates:**
+- `research/market_skills.json` — Enriched with the skills from this job posting
+- `research/companies/{industry}/{company}.md` (conditional) — Tracked Openings section
+**Prerequisites:** `corpus.json` and `constraints.yaml` are highly recommended for full functionality
 
 ---
 

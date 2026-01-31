@@ -4,6 +4,7 @@
 
 **Purpose:** Modify an existing resume to better fit a specific job posting, track three distinct fit scores (corpus fit, starting resume fit, final resume fit), and discover new corpus entries during the tailoring process.
 **Agent:** Job Coach (Max)
+**Phase:** apply
 **Reads:**
 - **Starting resume** — An existing resume file to modify (required). Can be:
   - A previous tailored resume from `applications/resumes/`
@@ -11,16 +12,19 @@
   - Any resume file the user provides (PDF files are auto-converted to Markdown)
 - `profile/corpus.json` — Resume Corpus (required)
 - `research/openings/{company}-{role}.md` — Parsed job posting with fit score from job-scan (required)
-- `profile/constraints.yaml` — For feedback style preference (optional)
+- `profile/constraints.yaml` (optional) — For feedback style preference
+- `profile/resume_template.yaml` (optional) — For PDF styling
 **Creates:**
-- `applications/resumes/{company}-{role}.md` — Tailored resume with fit score progression (starting → final).
-- `profile/corpus.json` (updated) — Enriched with explicitly cataloged new accomplishments, variations, and skills discovered during tailoring.
+- `applications/resumes/{company}-{role}.md` — Tailored resume with fit score progression (starting → final)
+- `applications/resumes/{company}-{role}.pdf` (optional) — PDF version if tools available
+**Updates:**
+- `profile/corpus.json` — Enriched with new accomplishments, variations, and skills discovered during tailoring
 **Key Metrics Tracked:**
 - **Corpus Fit Score** — Theoretical maximum based on all corpus content
 - **Starting Resume Fit Score** — The provided resume's alignment before modifications
 - **Final Resume Fit Score** — Result after tailoring
 - **Corpus Discoveries** — New accomplishments, variations, and skills added
-**Prerequisites:** `job-scan` completed for the target posting; a starting resume to modify.
+**Prerequisites:** `job-scan` completed for the target posting; a starting resume to modify
 
 ---
 

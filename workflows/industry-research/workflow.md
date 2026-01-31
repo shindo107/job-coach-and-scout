@@ -4,14 +4,17 @@
 
 **Purpose:** Research, score, and tier industries by fit, creating a durable and structured knowledge base.
 **Agent:** Job Scout
+**Phase:** research
 **Reads:**
 - `profile/corpus.json` — Skills and experience context (required)
 - `profile/constraints.yaml` — Job search preferences (required)
+- `research/industries/index.md` (optional) — Previously researched industries
 **Creates:**
-- `research/industries/index.md` — Tiered summary of all researched industries.
-- `research/industries/{industry}.md` — A detailed analysis file for each industry.
-- `research/companies/{industry}/{company}.md (stubs)` — Placeholder files for notable companies, creating a handoff to the `company-discovery` workflow.
-**Approximate time:** 15-25 minutes (market research + analysis)
+- `research/industries/index.md` — Tiered summary of all researched industries
+- `research/industries/{industry}.md` — A detailed analysis file for each industry
+- `research/companies/{industry}/{company}.md` (stubs) — Placeholder files for notable companies
+**Updates:**
+- `profile/constraints.yaml` (conditional) — If user wants to add avoid_industries
 **Prerequisites:** init and scoping-interview completed
 
 ---

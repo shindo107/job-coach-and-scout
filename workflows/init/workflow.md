@@ -2,23 +2,26 @@
 
 ## Summary
 
-**Purpose:** Set up your job search project with directory structure, import resume and writing samples
+**Purpose:** Set up your job search project with directory structure and import resume(s)
 **Agent:** Job Coach (Max) & Job Scout
+**Agent Lead:** Max
+**Phase:** setup
 **Reads:**
 - User-provided resumes (one or more file paths, or pasted content)
-- User-provided writing samples (optional)
 **Creates:**
 - `profile/corpus.json` — Your structured Resume Corpus
-- `profile/voice_profile.json` — Your analyzed writing voice characteristics (if samples provided)
+- `profile/resume_template.yaml` (optional) — PDF styling template (if PDF imported)
 - `profile/imports/` — Drop zone for source resumes
-- `profile/writing_samples/` — Voice analysis samples
+- `profile/writing_samples/` — Directory for voice analysis samples (populated later)
 - `applications/resumes/` — Directory for tailored resumes
 - `applications/cover_letters/` — Directory for cover letters
 - `research/companies/` — Directory for company profiles
 - `research/openings/` — Directory for job posting analyses
 - `research/market_skills.json` — Market intelligence database (empty seed)
-**Approximate time:** 5-10 minutes (interactive)
+**Updates:** None
 **Prerequisites:** None — this is the starting workflow
+
+> **Note:** Voice Agent created separately via `/create-voice` workflow after adding writing samples to `profile/writing_samples/`
 
 ---
 
@@ -63,8 +66,8 @@ I approach job hunting like competitive intelligence — analyzing markets, iden
 
 - [ ] Establish directory structure (profile/, applications/, research/)
 - [ ] Import your resume(s) — you can provide multiple versions for a richer corpus
-- [ ] Import writing samples (optional)
 - [ ] Schedule scoping interview (next workflow)
+- [ ] (Optional) Create Voice Agent via `/create-voice` after adding writing samples
 
 ---
 
@@ -444,165 +447,60 @@ This is a critical safety check to ensure the Resume Corpus is not corrupted.
     -   If user wants adjustments, allow inline edits or note they can edit the YAML file later.
     -   If user skips, delete the template file and proceed without PDF support.
 
-### Step 5: Writing Samples Import (Optional)
+### Step 5: Voice Agent Setup (Optional)
 
-Writing samples help me match your voice when generating cover letters. This is separate from your resume corpus.
+Your Voice Agent writes cover letters and LinkedIn content in your authentic style. It's created from writing samples you provide.
 
 **Prompt:**
-"Do you have writing samples to import? (cover letters, LinkedIn posts, etc.)
-- Provide file paths separated by commas
-- Type 'skip' if you don't have any right now"
+```
+Would you like to set up voice matching for cover letters?
 
-**Actions:**
-1. If user provides paths:
-   - Read each file
-   - Copy to `profile/writing_samples/` with original filename
-   - Track which files were imported for Step 5a
-2. If user skips:
-   - Note that no samples were provided
-   - Skip Step 5a (voice profile generation)
+This creates a Voice Agent that writes in your authentic style, based on
+samples of your writing (cover letters, emails, blog posts, etc.).
 
-### Step 5a: Generate Voice Profile
+Options:
+1. Yes, I have samples ready — I'll guide you to add them now
+2. Later — I'll set up the directory, you can run /create-voice anytime
+3. Skip — I don't need voice matching
 
-**Skip this step if:** No writing samples were imported in Step 5.
+Which option? [1/2/3]
+```
 
-**Purpose:** Analyze writing samples to create a structured voice profile that captures the user's unique writing style. This enables consistent voice matching across cover letters, LinkedIn content, and other generated materials.
+**Option 1 — Set up now:**
+```
+Great! Add your writing samples to `profile/writing_samples/`.
 
-**Actions:**
+Good samples include:
+- Cover letters you've written
+- Professional emails
+- LinkedIn posts or articles
+- Any professional writing that sounds like "you"
 
-1.  **- [ ] Analyze writing samples:**
-    -   Read all files in `profile/writing_samples/`
-    -   For each sample, analyze the following dimensions:
+Let me know when you've added them, and I'll run /create-voice to analyze
+your writing style and generate your Voice Agent.
+```
+- Wait for user to add files
+- Once confirmed, suggest running `/create-voice` as the next step after scoping
 
-    **Tone & Register:**
-    - Formality level: formal, professional, conversational, casual
-    - Confidence style: assertive, measured, humble, collaborative
-    - Energy: enthusiastic, calm, reserved, dynamic
+**Option 2 — Later:**
+```
+No problem! The `profile/writing_samples/` directory is ready for you.
 
-    **Sentence Structure:**
-    - Average sentence length tendency: short-punchy, medium, long-complex
-    - Sentence variety: consistent, varied
-    - Preferred openings: direct statements, context-setting, questions
+When you're ready:
+1. Add writing samples to `profile/writing_samples/`
+2. Run `/create-voice` to generate your Voice Agent
 
-    **Vocabulary Patterns:**
-    - Complexity: simple-clear, moderate, sophisticated
-    - Technical density: minimal, moderate, heavy
-    - Industry jargon usage: avoided, selective, frequent
-    - Distinctive words/phrases the user frequently uses
+Your Voice Agent will be used automatically by /cover-letter and /linkedin-review.
+```
 
-    **Voice & Perspective:**
-    - Person: first-person dominant, mixed, third-person
-    - Voice: active-dominant, mixed, passive-tolerant
-    - Self-reference style: "I achieved", "Led the team", "We delivered"
+**Option 3 — Skip:**
+```
+Got it. Cover letters will be generated without voice matching.
 
-    **Rhetorical Patterns:**
-    - Argument structure: direct-first, building, storytelling
-    - Evidence style: metrics-heavy, example-driven, principle-based
-    - Persuasion approach: logical, emotional, credibility-based
-
-    **Paragraph & Flow:**
-    - Paragraph length: short, medium, varied
-    - Transition style: explicit connectors, implicit flow, minimal
-    - Opening tendency: hook, context, direct statement
-    - Closing tendency: call-to-action, summary, forward-looking
-
-2.  **- [ ] Identify signature elements:**
-    -   Extract 3-5 distinctive phrases or constructions the user favors
-    -   Note any consistent patterns in how they describe achievements
-    -   Identify words they use frequently vs. words they avoid
-
-3.  **- [ ] Generate voice profile:**
-    -   Create `profile/voice_profile.json` with the analyzed characteristics:
-    ```json
-    {
-      "schema_version": "1.0",
-      "created_at": "{ISO timestamp}",
-      "samples_analyzed": ["{filename_1}", "{filename_2}"],
-      "sample_count": {N},
-      "total_word_count": {N},
-
-      "tone": {
-        "formality": "{formal|professional|conversational|casual}",
-        "confidence": "{assertive|measured|humble|collaborative}",
-        "energy": "{enthusiastic|calm|reserved|dynamic}",
-        "notes": "{any nuances observed}"
-      },
-
-      "sentence_structure": {
-        "length_tendency": "{short-punchy|medium|long-complex|varied}",
-        "variety": "{consistent|varied}",
-        "common_openings": ["{pattern_1}", "{pattern_2}"]
-      },
-
-      "vocabulary": {
-        "complexity": "{simple-clear|moderate|sophisticated}",
-        "technical_density": "{minimal|moderate|heavy}",
-        "jargon_usage": "{avoided|selective|frequent}",
-        "favorite_words": ["{word_1}", "{word_2}"],
-        "avoided_words": ["{word_1}", "{word_2}"]
-      },
-
-      "voice": {
-        "person": "{first-person|mixed|third-person}",
-        "active_passive": "{active-dominant|mixed|passive-tolerant}",
-        "self_reference_examples": ["{example_1}", "{example_2}"]
-      },
-
-      "rhetoric": {
-        "argument_structure": "{direct-first|building|storytelling}",
-        "evidence_style": "{metrics-heavy|example-driven|principle-based}",
-        "persuasion_approach": "{logical|emotional|credibility-based}"
-      },
-
-      "flow": {
-        "paragraph_length": "{short|medium|varied}",
-        "transitions": "{explicit|implicit|minimal}",
-        "opening_tendency": "{hook|context|direct}",
-        "closing_tendency": "{call-to-action|summary|forward-looking}"
-      },
-
-      "signature_elements": {
-        "distinctive_phrases": ["{phrase_1}", "{phrase_2}"],
-        "achievement_pattern": "{how they typically describe accomplishments}",
-        "storytelling_style": "{brief description of narrative approach}"
-      },
-
-      "generation_guidance": {
-        "do": ["{guideline_1}", "{guideline_2}"],
-        "avoid": ["{anti-pattern_1}", "{anti-pattern_2}"],
-        "example_sentences": ["{representative_sentence_1}", "{representative_sentence_2}"]
-      }
-    }
-    ```
-
-4.  **- [ ] Validate voice profile:**
-    -   Run: `cat profile/voice_profile.json | tools/validate-json.sh`
-    -   If validation fails, fix and retry.
-
-5.  **- [ ] Confirm with user:**
-    -   Display a summary of the detected voice characteristics:
-    ```
-    Voice Profile Created:
-
-    Tone: {formality}, {confidence}, {energy}
-    Style: {sentence_length} sentences, {complexity} vocabulary
-    Voice: {person} person, {active_passive} voice
-    Rhetoric: {argument_structure}, {evidence_style}
-
-    Signature elements I noticed:
-    - {distinctive_phrase_1}
-    - {distinctive_phrase_2}
-    - {achievement_pattern_summary}
-
-    This profile will be used to match your voice in cover letters
-    and other generated content. You can edit profile/voice_profile.json
-    to fine-tune any characteristics.
-
-    Does this sound like you? [Yes / Adjust / Skip voice matching]
-    ```
-    -   If user wants adjustments: Allow them to specify corrections (e.g., "I'm more formal than that", "I never use jargon")
-    -   Apply adjustments to the profile and save.
-    -   If user skips: Delete the voice profile file and proceed without voice matching.
+You can always add voice matching later by:
+1. Adding samples to `profile/writing_samples/`
+2. Running `/create-voice`
+```
 
 ### Step 6: Completion Summary
 
@@ -623,9 +521,14 @@ Created directories:
 
 Created files:
 - profile/corpus.json (Your Resume Corpus — built from {N} source(s))
-- profile/writing_samples/[list of samples]
-{If voice profile was generated:}
-- profile/voice_profile.json (Your writing voice characteristics)
+{If PDF imported:}
+- profile/resume_template.yaml (PDF styling template)
+
+Voice Agent:
+{If user chose to set up voice later or skipped:}
+- Run `/create-voice` after adding samples to `profile/writing_samples/`
+{If user added samples and wants to proceed:}
+- Ready to run `/create-voice` to generate your Voice Agent
 ```
 
 **Next step:**
@@ -644,9 +547,9 @@ The scoping interview is where we establish your job search constraints. This cr
 **Files created:**
 - `profile/corpus.json` (The user's structured resume knowledge base)
 - `profile/resume_template.yaml` (PDF styling template, if PDF imported)
-- `profile/writing_samples/*` (imported samples, if any)
-- `profile/voice_profile.json` (analyzed writing voice characteristics, if samples provided)
 - `research/market_skills.json` (empty seed for market intelligence)
+
+> **Note:** Voice Agent (`agents/voice.md`) and voice profile (`profile/voice_profile.json`) are created separately via the `/create-voice` workflow.
 
 ## Recommend Next
 

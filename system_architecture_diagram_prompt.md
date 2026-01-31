@@ -1,91 +1,84 @@
 Create a technical workflow diagram for an AI job search system. Match the visual style of the provided `jcas_final.jpg` exactly.
 
-## Visual Style (CRITICAL)
+## Visual Style
 
 - **Background:** Dark blue/black gradient with subtle texture
-- **Color palette:** Orange and teal/cyan — NO other colors for primary elements
-- **Effects:** Neon glow/border effect on boxes and the central database
-- **Typography:** Bold, clean sans-serif. Title in gradient orange-to-white.
-- **Icons:** Small, simple icons inside each workflow box (wrench, magnifying glass, document, etc.)
+- **Color palette:** Orange and teal/cyan only
+- **Effects:** Neon glow on boxes and central database
+- **Typography:** Bold sans-serif. Title gradient orange-to-white.
+- **Icons:** Simple icons in each workflow box
 
 ## Title Banner
 
-Top of diagram:
 **"AI JOB SEARCH SYSTEM WORKFLOW: AGENTS MAX & SCOUT"**
 - "AGENTS MAX & SCOUT" in orange gradient
 - Rest in white
 
 ## Agent Zones (Two Columns)
 
-### Left Zone: AGENT MAX (Orange theme)
-- Header: **"AGENT: MAX (Resume Tailoring & Feedback)"**
-- Border/accent color: Orange
-- Workflows in this zone:
-  - `init` (Setup) — "Both Agents" subtitle
-  - `scoping-interview` (Setup)
-  - `tailor-resume` (Apply) — formerly "fit-resume"
-  - `cover-letter` (Apply)
-  - `corpus-review` (Standalone)
+### Left: AGENT MAX (Orange)
+**"Resume Tailoring & Feedback"**
+- `init` (Setup) — "Both Agents" subtitle
+- `scoping-interview` (Setup)
+- `tailor-resume` (Apply)
+- `cover-letter` (Apply)
+- `corpus-review` (Standalone)
+- `linkedin-review` (Standalone)
 
-### Right Zone: AGENT SCOUT (Teal theme)
-- Header: **"AGENT: SCOUT (Market Research & Job Discovery)"**
-- Border/accent color: Teal/cyan
-- Workflows in this zone:
-  - `industry-research` (Research)
-  - `company-discovery` (Research)
-  - `job-scan` (Research)
+### Right: AGENT SCOUT (Teal)
+**"Market Research & Job Discovery"**
+- `industry-research` (Research)
+- `company-discovery` (Research)
+- `job-scan` (Research)
 
 ## Central Element: RESUME CORPUS
 
-- Large database cylinder icon in the center
-- Glowing orange/gold effect
+- Large database cylinder, glowing orange/gold
 - Label: **"RESUME CORPUS"**
-- This is the visual anchor — all workflows connect to it
+- All workflows connect to it
 
 ## Secondary Data Files
 
-Show smaller elements near relevant workflows:
-- `constraints.yaml` — near `scoping-interview`, with "WRITE" arrow going to it
-- `research/openings/` — near `job-scan`, receiving parsed job files
-- `applications/` folder — near `tailor-resume` and `cover-letter`, receiving output files
-- `market_skills.json` — near `job-scan`, with bidirectional arrows
+Position near relevant workflows:
+- `constraints.yaml` — near `scoping-interview`
+- `voice_profile.json` — near `cover-letter`
+- `market_skills.json` — between `job-scan` and `corpus-review`
+- `research/` folder — near Scout workflows (industries/, companies/, openings/)
+- `applications/` folder — near `tailor-resume` and `cover-letter`
 
 ## Arrow Annotations
 
-Use labeled arrows showing data flow:
-- **"READ >>>"** — orange arrows, pointing FROM corpus TO workflow
-- **"<<< WRITE"** — teal arrows, pointing FROM workflow TO corpus
-- Arrows should have slight glow effect matching their color
+- **"READ >>>"** — orange arrows, corpus → workflow
+- **"<<< WRITE"** — teal arrows, workflow → corpus
 
-## Numbered Phases (Bottom labels)
+## Phase Labels (Bottom)
 
-Three phase indicators along the bottom or integrated into the flow:
-1. **(1) Setup** — pointing to init/scoping-interview area
-2. **(2) Apply to Job** — pointing to tailor-resume/cover-letter area
-3. **(3) Research Market** — pointing to Scout's workflow area
+1. **(1) Setup** — init, scoping-interview
+2. **(2) Research** — industry-research, company-discovery, job-scan
+3. **(3) Apply** — tailor-resume, cover-letter
 
-## Entry/Exit Points (Left edge)
+## Entry/Exit Points
 
-- **"User Action"** — entry point showing user initiating workflows
-- **"Job Application"** — exit point showing final deliverable going out
+- **"User Action"** — entry point (left edge)
+- **"Job Application"** — exit point (right edge, from applications/)
 
-## Key Data Flows to Show
+## Key Data Flows
 
-1. `init` → WRITES → RESUME CORPUS (creates corpus)
-2. `init` → WRITES → `market_skills.json` (creates empty seed)
-3. `scoping-interview` → READS → RESUME CORPUS
-4. `scoping-interview` → WRITES → `constraints.yaml`
-5. `job-scan` → WRITES → `market_skills.json`
-6. `job-scan` → WRITES → `research/openings/`
-7. `corpus-review` → READS → `market_skills.json` + RESUME CORPUS
-8. `corpus-review` → WRITES → RESUME CORPUS
-9. `tailor-resume` → READS → RESUME CORPUS + `constraints.yaml` + `research/openings/`
-10. `tailor-resume` → WRITES → RESUME CORPUS (new accomplishments)
-11. `tailor-resume` → WRITES → `applications/resumes/`
-12. `cover-letter` → READS → RESUME CORPUS + `constraints.yaml`
-13. `cover-letter` → WRITES → `applications/cover_letters/`
-14. `linkedin-review` → READS/WRITES → RESUME CORPUS
+**Setup:**
+- `init` → creates CORPUS, seeds `market_skills.json`
+- `scoping-interview` → reads CORPUS, writes `constraints.yaml`
+
+**Research (Scout):**
+- `industry-research` → writes `research/industries/`
+- `company-discovery` → writes `research/companies/`
+- `job-scan` → writes `research/openings/`, updates `market_skills.json`
+
+**Apply (Max):**
+- `corpus-review` → reads `market_skills.json`, updates CORPUS
+- `tailor-resume` → reads CORPUS + openings, writes `applications/resumes/`, updates CORPUS
+- `cover-letter` → reads CORPUS + `voice_profile.json`, writes `applications/cover_letters/`
+- `linkedin-review` → reads/writes CORPUS, writes `linkedin.md`
 
 ## Overall Impression
 
-Technical and polished, like a well-designed DevOps dashboard or system architecture poster. The dark background with glowing elements should convey "modern AI system" while remaining clear and readable. The orange/teal split should make it immediately obvious which agent owns which workflows.
+Technical and polished like a DevOps dashboard. Dark background with glowing elements conveys "modern AI system." Orange/teal split makes agent ownership immediately obvious.

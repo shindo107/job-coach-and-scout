@@ -1,17 +1,20 @@
-# Company Discovery & Enrichment## Summary
+# Company Discovery & Enrichment
+
+## Summary
 
 **Purpose:** Discover new companies or enrich known targets in a specific industry, creating detailed, structured profiles.
 **Agent:** Job Scout
+**Phase:** research
 **Reads:**
 - `profile/corpus.json` — Skills context (required)
 - `profile/constraints.yaml` — Job search preferences (required)
-- `research/industries/index.md` — To identify Tier 1 industries.
-- `research/companies/{industry}/` — To find existing company stubs.
+- `research/industries/index.md` — To identify Tier 1 industries
+- `research/companies/{industry}/` — To find existing company stubs
 **Creates:**
-- `research/companies/{industry}/index.md` — Ranked summary of all companies.
-- `research/companies/{industry}/{company}.md` — Individual company profiles (new or enriched).
-**Approximate time:** 10-30 minutes, depending on mode.
-**Prerequisites:** init and scoping-interview completed; industry-research recommended.
+- `research/companies/{industry}/index.md` — Ranked summary of all companies
+- `research/companies/{industry}/{company}.md` — Individual company profiles (new or enriched)
+**Updates:** None
+**Prerequisites:** init and scoping-interview completed; industry-research recommended
 
 ---
 

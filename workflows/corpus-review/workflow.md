@@ -3,16 +3,17 @@
 ## Summary
 
 **Purpose:** Strengthen your Resume Corpus by analyzing it against real-world market data and closing strategic gaps.
-**Agent:** Job Coach (Max)
+**Agent:** Job Coach (Max) & Job Scout
+**Agent Lead:** Max (Scout leads market analysis, Max leads interactive gap-closing)
+**Phase:** standalone
 **Reads:**
-- `profile/corpus.json` — Your structured Resume Corpus (required).
-- `research/market_skills.json` — The database of skills seen in jobs you have scanned (required for market analysis).
-- `profile/constraints.yaml` — For feedback style preference (optional).
-**Creates:**
-- `profile/corpus.json` — Updated with improved and new entries.
-- `profile/corpus.json.bak` — Backup of the previous version.
-**Approximate time:** 20-40 minutes (interactive review)
-**Prerequisites:** `init` completed. `job-scan` should be run on several jobs for a meaningful market analysis.
+- `profile/corpus.json` — Your structured Resume Corpus (required)
+- `research/market_skills.json` — The database of skills seen in jobs you have scanned (required for market analysis)
+- `profile/constraints.yaml` (optional) — For feedback style preference
+**Creates:** None
+**Updates:**
+- `profile/corpus.json` — Updated with improved and new entries
+**Prerequisites:** `init` completed. `job-scan` should be run on several jobs for a meaningful market analysis
 
 ---
 

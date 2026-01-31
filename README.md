@@ -194,15 +194,152 @@ A strategic market intelligence analyst. Scout tracks hiring trends, evaluates c
 
 ## System Overview
 
-![AI Job Search System Workflow](workflow-diagram.jpg)
+```mermaid
+flowchart TB
+    %% Styling
+    classDef maxStyle fill:#ff6b35,stroke:#ff6b35,color:#fff
+    classDef scoutStyle fill:#00b4d8,stroke:#00b4d8,color:#fff
+    classDef voiceStyle fill:#9b59b6,stroke:#9b59b6,color:#fff
+    classDef dualStyle fill:#7b4b94,stroke:#7b4b94,color:#fff
+    classDef coreData fill:#ffd166,stroke:#ff6b35,color:#000
+    classDef intermediateData fill:#90be6d,stroke:#43aa8b,color:#000
+    classDef outputData fill:#f8961e,stroke:#f3722c,color:#000
 
-The diagram above shows how workflows interact with your **Resume Corpus** (the central knowledge base) and **constraints.yaml** (your job search preferences):
+    %% ===== ENTRY =====
+    USER([User])
 
-- **Setup Flow (1):** `init` imports your resumes and creates the corpus; `scoping-interview` captures your constraints
-- **Apply to Job Flow (2):** `job-scan` → `tailor-resume` → `cover-letter` → application ready
-- **Research Flow (3):** `industry-research` → `company-discovery` → `job-scan` to find opportunities
+    %% ===== SETUP LANE (Purple) =====
+    subgraph SETUP["🟣 SETUP"]
+        init[init]
+        init ==> scoping[scoping-interview]
+        scoping -.->|optional| create_voice[create-voice]
+    end
 
-Max (orange) handles resume tailoring and feedback. Scout (teal) handles market research and job discovery. The corpus grows smarter with each tailoring session as new accomplishments and variations are captured.
+    %% ===== SYSTEM (Standalone) =====
+    subgraph SYSTEM["🟣 SYSTEM"]
+        audit[audit]
+    end
+
+    %% ===== CORE DATA =====
+    subgraph CORE["CORE DATA"]
+        CORPUS[(CORPUS)]
+        constraints[constraints.yaml]
+        voice_profile[voice_profile.json]
+        voice_agent[voice.md]
+        resume_template[resume_template.yaml]
+    end
+
+    %% ===== RESEARCH LANE (Teal) =====
+    subgraph RESEARCH["🔵 SCOUT — Research"]
+        industry[industry-research]
+        industry ==> company[company-discovery]
+        company ==> jobscan[job-scan]
+    end
+
+    %% ===== INTERMEDIATE DATA =====
+    subgraph INTERMEDIATE["INTERMEDIATE DATA"]
+        market_skills[market_skills.json]
+        industries[industries/]
+        companies[companies/]
+        openings[openings/]
+    end
+
+    %% ===== APPLY LANE =====
+    subgraph APPLY["APPLY"]
+        subgraph MAX_APPLY["🟠 MAX"]
+            tailor[tailor-resume]
+        end
+        subgraph VOICE_APPLY["🟣 VOICE"]
+            cover[cover-letter]
+        end
+    end
+
+    %% ===== OUTPUTS =====
+    subgraph OUTPUTS["OUTPUTS"]
+        resumes[resumes/]
+        coverletters[cover_letters/]
+    end
+
+    %% ===== STANDALONE LANE =====
+    subgraph STANDALONE["STANDALONE"]
+        subgraph MAX_STANDALONE["🟠 MAX"]
+            corpus_rev[corpus-review]
+        end
+        subgraph VOICE_STANDALONE["🟣 VOICE + MAX"]
+            linkedin[linkedin-review]
+        end
+    end
+
+    %% ===== STANDALONE OUTPUTS =====
+    subgraph STANDALONE_OUT["STANDALONE OUTPUTS"]
+        linkedinmd[linkedin.md]
+    end
+
+    %% ===== FINAL =====
+    OUTPUT([Job Applications])
+
+    %% ===== FLOW: Setup creates foundation =====
+    USER ==> SETUP
+    init -->|creates| CORPUS
+    init -.->|seeds| market_skills
+    init -.->|optional| resume_template
+    scoping -->|writes| constraints
+    scoping -.->|updates| CORPUS
+    create_voice -->|writes| voice_profile
+    create_voice -->|writes| voice_agent
+
+    %% ===== FLOW: Research reads CORE, writes INTERMEDIATE =====
+    CORPUS -.->|read by| industry
+    constraints -.->|read by| industry
+    industry -->|writes| industries
+    industries -.->|read by| company
+    company -->|writes| companies
+    jobscan -->|writes| openings
+    jobscan -.->|updates| market_skills
+
+    %% ===== FLOW: Apply reads CORE + INTERMEDIATE, writes OUTPUTS =====
+    openings -.->|read by| tailor
+    openings -.->|read by| cover
+    resume_template -.->|read by| tailor
+    voice_agent -.->|read by| cover
+    voice_profile -.->|read by| cover
+    tailor -->|writes| resumes
+    tailor -.->|updates| CORPUS
+    cover -->|writes| coverletters
+
+    %% ===== FLOW: Standalone reads and updates =====
+    USER -.-> STANDALONE
+    USER -.-> SYSTEM
+    CORPUS -.->|read by| corpus_rev
+    market_skills -.->|read by| corpus_rev
+    corpus_rev -.->|updates| CORPUS
+    CORPUS -.->|read by| linkedin
+    constraints -.->|read by| linkedin
+    voice_agent -.->|read by| linkedin
+    linkedin -->|writes| linkedinmd
+    linkedin -.->|updates| CORPUS
+
+    %% ===== FLOW: To final output =====
+    OUTPUTS ==> OUTPUT
+    STANDALONE_OUT ==> OUTPUT
+
+    %% ===== APPLY STYLES =====
+    class tailor,corpus_rev maxStyle
+    class init,scoping,audit dualStyle
+    class industry,company,jobscan scoutStyle
+    class cover,linkedin,create_voice voiceStyle
+    class CORPUS,constraints,voice_profile,voice_agent,resume_template coreData
+    class market_skills,industries,companies,openings intermediateData
+    class resumes,coverletters,linkedinmd outputData
+```
+
+The diagram shows how workflows interact with your **Resume Corpus** (the central knowledge base) and **constraints.yaml** (your job search preferences):
+
+- **Setup Phase:** `init` imports your resumes and creates the corpus; `scoping-interview` captures your constraints; `create-voice` analyzes your writing samples
+- **Research Phase:** `industry-research` → `company-discovery` → `job-scan` to find opportunities
+- **Apply Phase:** `tailor-resume` → `cover-letter` → application ready
+
+**Agent colors:** Max (orange) handles resume tailoring and feedback. Scout (teal) handles market research and discovery. Voice (purple) writes in your authentic style. The corpus grows smarter with each tailoring session as new accomplishments and variations are captured.
 
 ## Directory Structure
 
@@ -228,9 +365,11 @@ job-coach-and-scout/
 │   └── audit/                   # System diagnostics
 │
 ├── tools/                       # Utility scripts
+│   ├── check-pdf-tools.sh       # PDF tool detection
+│   ├── generate-pdf.py          # PDF resume generation
+│   ├── templates/               # PDF templates (Typst)
 │   ├── validate-json.sh         # JSON validation
-│   ├── validate-yaml.sh         # YAML validation
-│   └── check-pdf-tools.sh       # PDF tool detection
+│   └── validate-yaml.sh         # YAML validation
 │
 ├── profile/                     # Your data (created by init)
 │   ├── corpus.json              # Your structured Resume Corpus
@@ -246,7 +385,9 @@ job-coach-and-scout/
 │   └── cover_letters/           # Generated cover letters
 │
 └── research/                    # Market intelligence
-    ├── industries.md            # Industry tier analysis
+    ├── industries/              # Industry analysis
+    │   ├── index.md             # Tiered summary of all industries
+    │   └── {industry}.md        # Individual industry analyses
     ├── market_skills.json       # Aggregated skill demand data
     ├── openings/                # Parsed job postings
     └── companies/               # Company profiles by industry

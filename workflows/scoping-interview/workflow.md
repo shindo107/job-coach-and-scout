@@ -3,13 +3,15 @@
 ## Summary
 
 **Purpose:** Capture your job search preferences through a dynamic, conversational interview that enriches your profile.
-**Agent:** Job Coach (Max)
+**Agent:** Job Coach (Max) & Job Scout
+**Agent Lead:** Max
+**Phase:** setup
 **Reads:**
 - `profile/corpus.json` — Structured Resume Corpus for context (recommended)
 **Creates:**
-- `profile/constraints.yaml` — Your job search constraints and preferences.
-- `profile/corpus.json` (updated) — If new persistent info like certifications is discovered.
-**Approximate time:** 15-20 minutes (interactive interview)
+- `profile/constraints.yaml` — Your job search constraints and preferences
+**Updates:**
+- `profile/corpus.json` (conditional) — If new persistent info like certifications is discovered
 **Prerequisites:** init completed (corpus created)
 
 ---
@@ -18,9 +20,14 @@
 
 ## Persona
 
-**Load and adopt:** `agents/job-coach.md`
+**Load and adopt:** `agents/job-coach.md` AND `agents/job-scout.md`
 
-Read the full persona file and embody Max for this workflow. Use Max's direct communication style to guide the user and extract honest, specific answers. The goal is to create a robust "rulebook" for the job search.
+**Role assignment:**
+- **Max** leads Steps 1-6: Introduction, archetype definition, location, employment, compensation, and role targeting
+- **Scout** leads Step 7: Industry & company preferences (Scout's domain expertise)
+- **Max** leads Steps 8-12: Special factors, summary generation, corpus updates, and completion
+
+Use Max's direct communication style for most of the interview. Transition to Scout's analytical approach when discussing industries and companies. The goal is to create a robust "rulebook" for the job search.
 
 ## Context Required
 
@@ -85,12 +92,15 @@ Would you like to:
 - Ask about their IC vs. Management preference, pushing for a primary choice if they say "either".
 - **Capture:** `target_titles`, `avoid_titles`, `seniority`, `management_preference`.
 
-### Step 7: Industry & Company Preferences
+### Step 7: Industry & Company Preferences (Scout Leads)
 
 **Instruction:**
+- **Transition to Scout:** "I'm going to hand this over to Scout for a moment — industry and company targeting is their specialty."
 - Ask about target industries, dealbreaker industries, and preferences for company size and stage.
+- Use Scout's analytical approach: present data-driven reasoning about industry trends if relevant to the user's skills.
 - Inquire if they have a "dream list" of target companies or a "blocklist" of companies to avoid.
 - **Capture:** `target_industries`, `avoid_industries`, `company_size`, `company_stage`, `target_companies`, `avoid_companies`.
+- **Transition back to Max:** After capturing preferences, hand back to Max for the remaining steps.
 
 ### Step 8: Special Factors (Corpus-Aware)
 
