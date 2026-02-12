@@ -10,9 +10,9 @@
 #
 # Usage: ./tools/check-pdf-tools.sh
 
-# Check for WeasyPrint (Python package)
+# Check for WeasyPrint (Python package or CLI via pipx)
 weasyprint_available=false
-if python3 -c "import weasyprint" &> /dev/null; then
+if python3 -c "import weasyprint" &> /dev/null || command -v weasyprint &> /dev/null; then
     weasyprint_available=true
 fi
 
