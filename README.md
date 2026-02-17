@@ -315,19 +315,31 @@ flowchart TB
 
     %% ===== FLOW: Research reads CORE, writes INTERMEDIATE =====
     CORPUS -.->|read by| industry
+    CORPUS -.->|read by| company
+    CORPUS -.->|read by| jobscan
     constraints -.->|read by| industry
+    constraints -.->|read by| company
+    constraints -.->|read by| jobscan
     industry -->|writes| industries
+    industry -.->|updates| constraints
     industries -.->|read by| company
     company -->|writes| companies
+    companies -.->|read by| jobscan
+    market_skills -.->|read by| jobscan
     jobscan -->|writes| openings
     jobscan -.->|updates| market_skills
 
     %% ===== FLOW: Apply reads CORE + INTERMEDIATE, writes OUTPUTS =====
+    CORPUS -.->|read by| tailor
+    CORPUS -.->|read by| cover
+    constraints -.->|read by| tailor
+    constraints -.->|read by| cover
     openings -.->|read by| tailor
     openings -.->|read by| cover
     resume_template -.->|read by| tailor
     voice_agent -.->|read by| cover
     voice_profile -.->|read by| cover
+    resumes -.->|read by| cover
     tailor -->|writes| resumes
     tailor -.->|updates| CORPUS
     cover -->|writes| coverletters
@@ -337,10 +349,12 @@ flowchart TB
     USER -.-> SYSTEM
     CORPUS -.->|read by| corpus_rev
     market_skills -.->|read by| corpus_rev
+    constraints -.->|read by| corpus_rev
     corpus_rev -.->|updates| CORPUS
     CORPUS -.->|read by| linkedin
     constraints -.->|read by| linkedin
     voice_agent -.->|read by| linkedin
+    voice_profile -.->|read by| linkedin
     linkedin -->|writes| linkedinmd
     linkedin -.->|updates| CORPUS
 
@@ -351,8 +365,8 @@ flowchart TB
     %% ===== APPLY STYLES =====
     class tailor maxStyle
     class init,scoping,audit,corpus_rev dualStyle
-    class industry,company,jobscan scoutStyle
-    class cover,linkedin,create_voice voiceStyle
+    class industry,company,jobscan,create_voice scoutStyle
+    class cover,linkedin voiceStyle
     class CORPUS,constraints,voice_profile,voice_agent,resume_template coreData
     class market_skills,industries,companies,openings intermediateData
     class resumes,coverletters,linkedinmd outputData
